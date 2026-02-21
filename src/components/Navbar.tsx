@@ -1,4 +1,5 @@
-import { Moon, Sun, Users, Briefcase, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Moon, Sun, Users, Briefcase, TrendingUp, FileText, Home as HomeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import OverallScoreBadge from "./OverallScoreBadge";
@@ -6,20 +7,38 @@ import SwimLogo from "./SwimLogo";
 import { useTheme } from "@/hooks/useTheme";
 
 interface NavbarProps {
-  score: number | null;
+  score?: number | null;
 }
 
-const Navbar = ({ score }: NavbarProps) => {
+const Navbar = ({ score = null }: NavbarProps) => {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
+  const [logoHovered, setLogoHovered] = useState(false);
+
   return (
     <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0">
       <div className="flex items-center gap-3 min-w-[200px]">
-        <SwimLogo size={28} />
-        <div className="flex flex-col leading-tight">
-          <span className="font-semibold text-foreground text-lg leading-none">SWIM</span>
-          <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
-        </div>
+        <Link
+          to="/"
+          className="flex items-center gap-3 no-underline"
+          onMouseEnter={() => setLogoHovered(true)}
+          onMouseLeave={() => setLogoHovered(false)}
+        >
+          {logoHovered ? (
+            <div
+              className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all duration-200"
+              style={{ width: 28, height: 28 }}
+            >
+              <HomeIcon className="h-4 w-4" />
+            </div>
+          ) : (
+            <SwimLogo size={28} />
+          )}
+          <div className="flex flex-col leading-tight">
+            <span className="font-semibold text-foreground text-lg leading-none">SWIM</span>
+            <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
+          </div>
+        </Link>
       </div>
 
       <div className="flex-1 flex justify-center">
@@ -28,7 +47,7 @@ const Navbar = ({ score }: NavbarProps) => {
 
       <div className="min-w-[200px] flex items-center justify-end gap-2">
         <Link to="/candidates">
-          <Button variant={location.pathname === "/candidates" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
+          <Button variant={location.pathname === "/candidates" || location.pathname.startsWith("/candidates/") ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <Users className="h-3.5 w-3.5" />
             Candidates
           </Button>
@@ -45,13 +64,9 @@ const Navbar = ({ score }: NavbarProps) => {
             Proof of Value
           </Button>
         </Link>
-        <Link to="/">
-          <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs transition-colors duration-200">
-            Home
-          </Button>
-        </Link>
         <Link to="/analyze">
-          <Button variant={location.pathname === "/analyze" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs transition-colors duration-200">
+          <Button variant={location.pathname === "/analyze" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
+            <FileText className="h-3.5 w-3.5" />
             Analyser
           </Button>
         </Link>
