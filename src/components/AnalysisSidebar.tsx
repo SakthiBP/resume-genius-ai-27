@@ -1,7 +1,8 @@
 import ScoreBar from "./ScoreBar";
 import InsightCard, { type Insight } from "./InsightCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Timer, DollarSign, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Timer, DollarSign, Clock, GraduationCap } from "lucide-react";
 import type { AnalysisResult } from "@/types/analysis";
 
 interface AnalysisSidebarProps {
@@ -59,6 +60,40 @@ function eligibilityBadge(eligible: string | undefined): { colour: string; label
   }
 }
 
+/* ── QS ranking tier display helper ── */
+function qsLabel(tier: string | undefined): string {
+  switch (tier) {
+    case "top_10": return "QS Top 10";
+    case "top_50": return "QS Top 50";
+    case "top_100": return "QS Top 100";
+    case "top_200": return "QS Top 200";
+    case "top_500": return "QS Top 500";
+    case "unranked": return "Unranked";
+    default: return "";
+  }
+}
+
+function gradeQualityLabel(tier: string | undefined): string {
+  switch (tier) {
+    case "exceptional": return "Exceptional";
+    case "strong": return "Strong";
+    case "good": return "Good";
+    case "average": return "Average";
+    case "below_average": return "Below Average";
+    default: return "";
+  }
+}
+
+function courseRelevanceLabel(rel: string | undefined): string {
+  switch (rel) {
+    case "highly_relevant": return "Highly Relevant";
+    case "relevant": return "Relevant";
+    case "partially_relevant": return "Partially Relevant";
+    case "not_relevant": return "Not Relevant";
+    default: return "";
+  }
+}
+
 function mapResultToInsights(r: AnalysisResult, hasRole: boolean): Insight[] {
   const insights: Insight[] = [];
   let id = 0;
@@ -76,22 +111,33 @@ function mapResultToInsights(r: AnalysisResult, hasRole: boolean): Insight[] {
     });
   }
 
-  // Education card (new)
+  // Education card (upgraded)
   if (r.education) {
     const edu = r.education;
-    const parts: string[] = [];
-    if (edu.degree) parts.push(edu.degree);
-    if (edu.course) parts.push(`in ${edu.course}`);
-    if (edu.institution) parts.push(`at ${edu.institution}`);
-    const gradeStr = edu.gpa_or_grade ? ` — Grade: ${edu.gpa_or_grade}` : "";
-    const onTimeStr = edu.completed_on_time === "yes" ? " · Completed on time" : edu.completed_on_time === "no" ? " · Extended duration" : "";
+    const qsTier = qsLabel(edu.qs_ranking_tier);
+    const institutionLine = edu.institution ? `${edu.institution}${qsTier ? ` — ${qsTier}` : ""}` : "Institution unknown";
+    const degreeLine = [edu.degree, edu.course].filter(Boolean).join(" in ");
+    const gradeOriginal = edu.gpa_or_grade || null;
+    const gradeNorm = gradeQualityLabel(edu.grade_quality_tier);
+    const gradeLine = gradeOriginal ? `${gradeOriginal}${gradeNorm ? ` — ${gradeNorm}` : ""}` : null;
+    const onTimeLine = edu.completed_on_time === "yes" ? "✓ Completed on time" : edu.completed_on_time === "no" ? "✗ Extended duration" : null;
+    const relevanceLine = courseRelevanceLabel(edu.course_relevance);
+
+    const detailParts = [
+      institutionLine,
+      degreeLine || null,
+      gradeLine,
+      onTimeLine,
+      relevanceLine ? `Course relevance: ${relevanceLine}` : null,
+      edu.notes || null,
+    ].filter(Boolean).join("\n");
 
     insights.push({
       id: String(++id),
       type: "education",
       category: "Education",
-      title: parts.join(" ") || "Education details",
-      detail: `${edu.notes || ""}${gradeStr}${onTimeStr}`.trim() || "Education data extracted.",
+      title: institutionLine,
+      detail: detailParts || "Education data extracted.",
     });
   }
 
@@ -212,9 +258,38 @@ const AnalysisSidebar = ({ isLoading, hasResults, result, hasRole }: AnalysisSid
 
   const isNewFormat = !!result.job_description_match;
 
+  // Target student check
+  const targetMatches = result.education?.target_universities_matched ?? [];
+  const isTargetStudent = targetMatches.length > 0;
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+        {/* Target Student Badge — prominent, above score bars */}
+        {hasRole && (
+          <div className="animate-fade-in-up">
+            {isTargetStudent ? (
+              <div className="flex items-center gap-2 px-3 py-2.5 border border-score-green/40 bg-score-green/10">
+                <GraduationCap className="h-4 w-4 text-score-green shrink-0" />
+                <div>
+                  <Badge className="score-badge-green text-[11px] font-bold border px-2 py-0.5">
+                    TARGET STUDENT
+                  </Badge>
+                  <p className="text-[10px] text-score-green mt-0.5">{targetMatches.join(", ")}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-2.5 border border-border bg-muted/30">
+                <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
+                <Badge className="score-badge-muted text-[11px] font-bold border px-2 py-0.5">
+                  NON-TARGET
+                </Badge>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Category Score Bars — 7 sections */}
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Candidate Evaluation</h3>

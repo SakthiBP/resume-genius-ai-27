@@ -35,6 +35,9 @@ export interface AnalysisResult {
     degree: string;
     course: string;
     gpa_or_grade: string | null;
+    grade_quality_tier?: "exceptional" | "strong" | "good" | "average" | "below_average";
+    qs_ranking_tier?: "top_10" | "top_50" | "top_100" | "top_200" | "top_500" | "unranked" | "unknown";
+    course_relevance?: "highly_relevant" | "relevant" | "partially_relevant" | "not_relevant";
     expected_years_to_complete: number;
     actual_years_taken: number | null;
     completed_on_time: "yes" | "no" | "unknown";
