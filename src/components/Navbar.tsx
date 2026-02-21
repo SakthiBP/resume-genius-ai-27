@@ -13,7 +13,7 @@ const Navbar = ({ score }: NavbarProps) => {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
   return (
-    <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0 transition-colors duration-300">
+    <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0">
       <div className="flex items-center gap-3 min-w-[200px]">
         <SwimLogo size={28} />
         <div className="flex flex-col leading-tight">
@@ -28,13 +28,13 @@ const Navbar = ({ score }: NavbarProps) => {
 
       <div className="min-w-[200px] flex items-center justify-end gap-2">
         <Link to="/candidates">
-          <Button variant={location.pathname === "/candidates" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs">
+          <Button variant={location.pathname === "/candidates" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-none">
             <Users className="h-3.5 w-3.5" />
             Candidates
           </Button>
         </Link>
         <Link to="/">
-          <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs">
+          <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs transition-none">
             Analyser
           </Button>
         </Link>
