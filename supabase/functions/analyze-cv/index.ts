@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -169,6 +170,26 @@ serve(async (req) => {
       total_tokens: inputTokens + outputTokens,
       actual_cost_usd: parseFloat(cost.toFixed(4))
     };
+
+    // Save to candidates table
+    try {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      await supabaseClient.from('candidates').insert({
+        candidate_name: analysis.candidate_name || 'Unknown',
+        email: analysis.email || null,
+        overall_score: analysis.overall_score?.composite_score ?? 0,
+        recommendation: analysis.overall_score?.recommendation ?? 'maybe',
+        analysis_json: analysis,
+        cv_text: cv_text,
+        job_description: job_description || null,
+        status: 'pending',
+      });
+    } catch (dbErr) {
+      console.error("Failed to save candidate:", dbErr);
+    }
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
