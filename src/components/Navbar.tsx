@@ -11,11 +11,14 @@ interface NavbarProps {
 const Navbar = ({ score, isDark, onToggleTheme }: NavbarProps) => {
   return (
     <header className="h-14 border-b border-border bg-card flex items-center px-4 shrink-0">
-      <div className="flex items-center gap-2 min-w-[140px]">
+      <div className="flex items-center gap-3 min-w-[200px]">
         <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
           <span className="text-primary-foreground font-bold text-sm">R</span>
         </div>
-        <span className="font-semibold text-foreground text-lg">ResumeAI</span>
+        <div className="flex flex-col leading-tight">
+          <span className="font-semibold text-foreground text-lg leading-none">ResumeAI</span>
+          <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
+        </div>
       </div>
 
       <div className="flex-1 flex justify-center">

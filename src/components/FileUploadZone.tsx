@@ -97,7 +97,7 @@ const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
         <>
           <Upload className="h-10 w-10 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
           <p className="font-medium text-foreground">
-            Drop your resume here or{" "}
+            Drop candidate resume here or{" "}
             <span className="gradient-text font-semibold">browse</span>
           </p>
           <p className="text-sm text-muted-foreground mt-1">
