@@ -97,11 +97,19 @@ serve(async (req) => {
       },
     });
 
+    // Convert plain text to HTML for proper email rendering
+    const htmlBody = email_body
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>\n");
+
     await client.send({
       from: `${RECRUITER_NAME} <${GMAIL_USER}>`,
       to: candidate_email,
       subject: subject,
-      content: email_body,
+      content: "auto",
+      html: `<div style="font-family: Arial, sans-serif; font-size: 14px; color: #222; line-height: 1.6;">${htmlBody}</div>`,
     });
 
     await client.close();
