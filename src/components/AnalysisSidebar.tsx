@@ -150,7 +150,7 @@ const AnalysisSidebar = ({ isLoading, hasResults, result }: AnalysisSidebarProps
   if (!hasResults || !result) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <p className="text-sm text-muted-foreground text-center">Upload a candidate resume and click "Analyze Resume" to see screening results</p>
+        <p className="text-sm text-muted-foreground text-center">Upload a candidate resume and click "Analyse Resume" to see screening results</p>
       </div>
     );
   }
