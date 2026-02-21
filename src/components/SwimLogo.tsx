@@ -9,63 +9,113 @@ interface SwimLogoProps {
 const NUM_POINTS = 40;
 const VIEW_W = 22;
 const BASE_YS = [3.5, 8.5, 13.5];
-const AMPLITUDE = 1.2;
-const WAVE_K = 0.9;   // spatial frequency
-const OMEGA = 4.5;    // angular velocity
+const TARGET_AMP = 1.2;
+const WAVE_K = 0.9;
+const OMEGA = 4.5;
 const PHASE_OFFSETS = [0, 0.7, 1.4];
+const RAMP_MS = 220;
 
-function buildPath(baseY: number, t: number, phase: number): string {
+const STATIC_PATHS = [
+  "M1 3.5C3.5 1 5.5 1.5 7.5 3.5C9.5 5.5 11.5 5 14 3C16.5 1 18.5 1.5 21 3.5",
+  "M1 8.5C4 6 6 7 8 8.5C10 10 12 9.5 14.5 7.5C17 5.5 19 6.5 21 8.5",
+  "M1 13.5C3 11 5.5 11.5 7 13C8.5 14.5 11 14 13.5 12C16 10 18.5 11 21 13.5",
+];
+
+function buildPath(baseY: number, t: number, phase: number, amp: number): string {
   const pts: string[] = [];
   for (let i = 0; i <= NUM_POINTS; i++) {
     const x = (i / NUM_POINTS) * VIEW_W;
-    // Taper amplitude at edges so endpoints stay anchored
     const edge = Math.sin((i / NUM_POINTS) * Math.PI);
-    const y = baseY + AMPLITUDE * edge * Math.sin(WAVE_K * x - OMEGA * t + phase);
+    const y = baseY + amp * edge * Math.sin(WAVE_K * x - OMEGA * t + phase);
     pts.push(`${x.toFixed(2)},${y.toFixed(2)}`);
   }
   return "M" + pts[0] + pts.slice(1).map((p) => "L" + p).join("");
 }
 
+function easeInOut(t: number): number {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
 const SwimLogo = ({ className = "", size = 28, animate = false }: SwimLogoProps) => {
   const pathRefs = [useRef<SVGPathElement>(null), useRef<SVGPathElement>(null), useRef<SVGPathElement>(null)];
   const rafRef = useRef<number>(0);
-  const startRef = useRef<number>(0);
+  const t0Ref = useRef<number>(0);
+  const ampRef = useRef<number>(0);
+  const targetAmpRef = useRef<number>(0);
+  const rampStartRef = useRef<number>(0);
+  const rampFromRef = useRef<number>(0);
+  const reducedMotionRef = useRef(false);
+
+  useEffect(() => {
+    reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
 
   const tick = useCallback((now: number) => {
-    if (!startRef.current) startRef.current = now;
-    const t = (now - startRef.current) / 1000;
+    // Compute current amplitude via ramp
+    const rampElapsed = now - rampStartRef.current;
+    const rampProgress = Math.min(rampElapsed / RAMP_MS, 1);
+    const easedProgress = easeInOut(rampProgress);
+    const currentAmp = rampFromRef.current + (targetAmpRef.current - rampFromRef.current) * easedProgress;
+    ampRef.current = currentAmp;
+
+    const t = (now - t0Ref.current) / 1000;
+
     for (let i = 0; i < 3; i++) {
       const el = pathRefs[i].current;
-      if (el) el.setAttribute("d", buildPath(BASE_YS[i], t, PHASE_OFFSETS[i]));
+      if (el) el.setAttribute("d", buildPath(BASE_YS[i], t, PHASE_OFFSETS[i], currentAmp));
     }
+
+    // If ramping down and amplitude reached ~0, stop and reset to static
+    if (targetAmpRef.current === 0 && rampProgress >= 1) {
+      for (let i = 0; i < 3; i++) {
+        pathRefs[i].current?.setAttribute("d", STATIC_PATHS[i]);
+      }
+      ampRef.current = 0;
+      rafRef.current = 0;
+      return; // stop loop
+    }
+
     rafRef.current = requestAnimationFrame(tick);
   }, []);
 
   useEffect(() => {
-    // Respect prefers-reduced-motion
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) return;
+    if (reducedMotionRef.current) return;
+
+    const now = performance.now();
 
     if (animate) {
-      startRef.current = 0;
-      rafRef.current = requestAnimationFrame(tick);
+      // Start ramping up
+      if (!t0Ref.current) t0Ref.current = now;
+      rampStartRef.current = now;
+      rampFromRef.current = ampRef.current;
+      targetAmpRef.current = TARGET_AMP;
+
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
     } else {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      // Reset to static paths
-      const staticPaths = [
-        "M1 3.5C3.5 1 5.5 1.5 7.5 3.5C9.5 5.5 11.5 5 14 3C16.5 1 18.5 1.5 21 3.5",
-        "M1 8.5C4 6 6 7 8 8.5C10 10 12 9.5 14.5 7.5C17 5.5 19 6.5 21 8.5",
-        "M1 13.5C3 11 5.5 11.5 7 13C8.5 14.5 11 14 13.5 12C16 10 18.5 11 21 13.5",
-      ];
-      for (let i = 0; i < 3; i++) {
-        pathRefs[i].current?.setAttribute("d", staticPaths[i]);
+      // Start ramping down
+      rampStartRef.current = now;
+      rampFromRef.current = ampRef.current;
+      targetAmpRef.current = 0;
+
+      // Ensure loop is running for the decay
+      if (!rafRef.current && ampRef.current > 0) {
+        rafRef.current = requestAnimationFrame(tick);
       }
     }
 
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      // Don't cancel on cleanup — let decay finish naturally
     };
   }, [animate, tick]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   return (
     <div
@@ -79,27 +129,9 @@ const SwimLogo = ({ className = "", size = 28, animate = false }: SwimLogoProps)
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <path
-          ref={pathRefs[0]}
-          d="M1 3.5C3.5 1 5.5 1.5 7.5 3.5C9.5 5.5 11.5 5 14 3C16.5 1 18.5 1.5 21 3.5"
-          stroke="#000000"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          ref={pathRefs[1]}
-          d="M1 8.5C4 6 6 7 8 8.5C10 10 12 9.5 14.5 7.5C17 5.5 19 6.5 21 8.5"
-          stroke="#000000"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          ref={pathRefs[2]}
-          d="M1 13.5C3 11 5.5 11.5 7 13C8.5 14.5 11 14 13.5 12C16 10 18.5 11 21 13.5"
-          stroke="#000000"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+        <path ref={pathRefs[0]} d={STATIC_PATHS[0]} stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+        <path ref={pathRefs[1]} d={STATIC_PATHS[1]} stroke="#000000" strokeWidth="2" strokeLinecap="round" />
+        <path ref={pathRefs[2]} d={STATIC_PATHS[2]} stroke="#000000" strokeWidth="2" strokeLinecap="round" />
       </svg>
     </div>
   );
