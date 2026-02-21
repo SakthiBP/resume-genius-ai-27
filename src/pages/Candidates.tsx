@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import RankingMode from "@/components/RankingMode";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// Select still used for sort/filter controls
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Users, ArrowUpDown, Download } from "lucide-react";
+import { Search, Users, ArrowUpDown, Download, List, Trophy } from "lucide-react";
 import type { AnalysisResult } from "@/types/analysis";
 
 interface Candidate {
@@ -27,6 +27,11 @@ interface Candidate {
   job_description: string | null;
   status: string;
   created_at: string;
+}
+
+interface Role {
+  id: string;
+  job_title: string;
 }
 
 const STATUS_OPTIONS = [
@@ -65,12 +70,15 @@ function timeAgo(dateStr: string) {
 const Candidates = () => {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [viewMode, setViewMode] = useState<"list" | "ranking">("list");
 
   useEffect(() => {
     fetchCandidates();
+    fetchRoles();
   }, []);
 
   const fetchCandidates = async () => {
@@ -82,6 +90,10 @@ const Candidates = () => {
     if (error) console.error("Failed to fetch candidates:", error);
   };
 
+  const fetchRoles = async () => {
+    const { data } = await supabase.from("roles").select("id, job_title").order("job_title");
+    if (data) setRoles(data);
+  };
 
   const exportCSV = () => {
     const headers = [
@@ -146,7 +158,7 @@ const Candidates = () => {
             <Users className="h-6 w-6 text-muted-foreground" />
             <h1 className="text-2xl font-bold text-foreground uppercase">Candidate Pipeline</h1>
             <Badge variant="secondary" className="text-xs">{candidates.length}</Badge>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={exportCSV} className="gap-2 text-xs">
                 <Download className="h-3.5 w-3.5" />
                 Extract Data
@@ -154,92 +166,119 @@ const Candidates = () => {
             </div>
           </div>
 
-          {/* Controls */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px]">
-                <ArrowUpDown className="h-3.5 w-3.5 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date">Newest First</SelectItem>
-                <SelectItem value="score">Score: High → Low</SelectItem>
-                <SelectItem value="name">Name: A → Z</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="deny">Denied</SelectItem>
-                <SelectItem value="online_assessment">OA Scheduled</SelectItem>
-                <SelectItem value="interview">Interview Scheduled</SelectItem>
-                <SelectItem value="hire">Hired</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* View Toggle */}
+          <div className="flex items-center gap-0 mb-6 border border-border w-fit">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-2 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors duration-200 ${
+                viewMode === "list"
+                  ? "bg-foreground text-background"
+                  : "bg-card text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <List className="h-3.5 w-3.5" />
+              List Mode
+            </button>
+            <button
+              onClick={() => setViewMode("ranking")}
+              className={`flex items-center gap-2 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors duration-200 border-l border-border ${
+                viewMode === "ranking"
+                  ? "bg-foreground text-background"
+                  : "bg-card text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Trophy className="h-3.5 w-3.5" />
+              Ranking Mode
+            </button>
           </div>
 
-          {/* Candidate List */}
-          {filtered.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
-              <Users className="h-10 w-10 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">No candidates found</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filtered.map((c) => {
-                const statusOpt = STATUS_OPTIONS.find((s) => s.value === c.status) || STATUS_OPTIONS[0];
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => navigate(`/candidates/${c.id}`)}
-                    className="flex items-center gap-4 p-4 border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer"
-                  >
-                    {/* Name & email */}
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-semibold text-foreground truncate block">
-                        {c.candidate_name}
-                      </span>
-                      {c.email && (
-                        <p className="text-xs text-muted-foreground truncate">{c.email}</p>
-                      )}
-                    </div>
+          {/* List Mode */}
+          {viewMode === "list" && (
+            <>
+              {/* Controls */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[180px]">
+                    <ArrowUpDown className="h-3.5 w-3.5 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-popover">
+                    <SelectItem value="date">Newest First</SelectItem>
+                    <SelectItem value="score">Score: High → Low</SelectItem>
+                    <SelectItem value="name">Name: A → Z</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-popover">
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="deny">Denied</SelectItem>
+                    <SelectItem value="online_assessment">OA Scheduled</SelectItem>
+                    <SelectItem value="interview">Interview Scheduled</SelectItem>
+                    <SelectItem value="hire">Hired</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                    {/* Score badge */}
-                    <Badge variant="outline" className={`text-xs font-bold tabular-nums w-10 justify-center shrink-0 ${getScoreBadgeClasses(c.overall_score)}`}>
-                      {c.overall_score}
-                    </Badge>
+              {/* Candidate List */}
+              {filtered.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground">
+                  <Users className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                  <p className="text-sm">No candidates found</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filtered.map((c) => {
+                    const statusOpt = STATUS_OPTIONS.find((s) => s.value === c.status) || STATUS_OPTIONS[0];
+                    return (
+                      <div
+                        key={c.id}
+                        onClick={() => navigate(`/candidates/${c.id}`)}
+                        className="flex items-center gap-4 p-4 border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-semibold text-foreground truncate block">
+                            {c.candidate_name}
+                          </span>
+                          {c.email && (
+                            <p className="text-xs text-muted-foreground truncate">{c.email}</p>
+                          )}
+                        </div>
+                        <Badge variant="outline" className={`text-xs font-bold tabular-nums w-10 justify-center shrink-0 ${getScoreBadgeClasses(c.overall_score)}`}>
+                          {c.overall_score}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground hidden sm:block w-24 text-center">
+                          {REC_LABELS[c.recommendation] || c.recommendation}
+                        </span>
+                        <span className="text-xs text-muted-foreground w-16 text-right hidden md:block">
+                          {timeAgo(c.created_at)}
+                        </span>
+                        <Badge className={`text-[10px] px-2.5 py-0.5 w-[100px] justify-center ${statusOpt.color} border-0 pointer-events-none shrink-0`}>
+                          {statusOpt.label}
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
 
-                    {/* Recommendation */}
-                    <span className="text-xs text-muted-foreground hidden sm:block w-24 text-center">
-                      {REC_LABELS[c.recommendation] || c.recommendation}
-                    </span>
-
-                    {/* Date */}
-                    <span className="text-xs text-muted-foreground w-16 text-right hidden md:block">
-                      {timeAgo(c.created_at)}
-                    </span>
-
-                    {/* Status pill (read-only) */}
-                    <Badge className={`text-[10px] px-2.5 py-0.5 w-[100px] justify-center ${statusOpt.color} border-0 pointer-events-none shrink-0`}>
-                      {statusOpt.label}
-                    </Badge>
-                  </div>
-                );
-              })}
-            </div>
+          {/* Ranking Mode */}
+          {viewMode === "ranking" && (
+            <RankingMode candidates={candidates} roles={roles} />
           )}
         </div>
       </div>
