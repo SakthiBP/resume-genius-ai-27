@@ -67,7 +67,7 @@ const DocumentPanel = ({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-[rgba(255,255,255,0.7)] dark:bg-[rgba(0,0,0,0.7)] backdrop-blur-[14px] border-b border-[rgba(0,0,0,0.08)] dark:border-[rgba(255,255,255,0.08)]">
+      <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-3 bg-[rgba(255,255,255,0.45)] dark:bg-[rgba(0,0,0,0.45)] backdrop-blur-[14px] border-b border-[rgba(0,0,0,0.06)] dark:border-[rgba(255,255,255,0.1)]">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FileText className="h-4 w-4" />
           <span className="font-medium text-foreground">{file.name}</span>
