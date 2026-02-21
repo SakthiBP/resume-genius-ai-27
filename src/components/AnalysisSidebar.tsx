@@ -194,7 +194,7 @@ const AnalysisSidebar = ({ isLoading, hasResults, result }: AnalysisSidebarProps
       <div className="border-t border-border bg-accent/50 px-6 py-3">
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1"><Timer className="h-3 w-3" /> {metrics.processing_time_seconds ?? "—"}s</span>
-          <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> ${metrics.cost_estimate_usd?.toFixed(2) ?? "0.03"}</span>
+          <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> ${metrics.cost_estimate_usd?.toFixed(4) ?? "0.0000"}</span>
           <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {metrics.estimated_manual_review_minutes} min saved</span>
         </div>
         <p className="text-[10px] text-muted-foreground/60 mt-1">200× faster than manual screening</p>
