@@ -1,4 +1,4 @@
-import { Moon, Sun, Users } from "lucide-react";
+import { Moon, Sun, Users, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import OverallScoreBadge from "./OverallScoreBadge";
@@ -31,6 +31,12 @@ const Navbar = ({ score }: NavbarProps) => {
           <Button variant={location.pathname === "/candidates" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-none">
             <Users className="h-3.5 w-3.5" />
             Candidates
+          </Button>
+        </Link>
+        <Link to="/roles">
+          <Button variant={location.pathname === "/roles" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-none">
+            <Briefcase className="h-3.5 w-3.5" />
+            Roles
           </Button>
         </Link>
         <Link to="/">

@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      roles: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          job_title: string
+          required_skills: Json
+          target_universities: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          job_title: string
+          required_skills?: Json
+          target_universities?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          job_title?: string
+          required_skills?: Json
+          target_universities?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
