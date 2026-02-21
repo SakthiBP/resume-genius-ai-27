@@ -1,8 +1,7 @@
 import { useCallback, useState } from "react";
-import { FileText, X } from "lucide-react";
+import { FileText, X, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import SwimLogo from "./SwimLogo";
 
 const ACCEPTED_TYPES = [
   "application/pdf",
@@ -62,8 +61,8 @@ const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
       className={cn(
         "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-all duration-300 cursor-pointer group",
         isDragging
-          ? "border-primary bg-primary/10 scale-[1.02]"
-          : "border-border hover:border-primary/60 hover:bg-accent/40"
+          ? "border-foreground/60 bg-foreground/5 scale-[1.02]"
+          : "border-border hover:border-foreground/40 hover:bg-accent/40"
       )}
       onClick={() => document.getElementById("file-input")?.click()}
     >
@@ -77,7 +76,7 @@ const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
 
       {file ? (
         <div className="flex items-center gap-3">
-          <FileText className="h-8 w-8 text-primary" />
+          <FileText className="h-8 w-8 text-foreground" />
           <div className="text-left">
             <p className="font-medium text-foreground">{file.name}</p>
             <p className="text-sm text-muted-foreground">
@@ -96,10 +95,10 @@ const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
         </div>
       ) : (
         <>
-          <SwimLogo size={48} className="mb-4 group-hover:scale-105 transition-transform" />
+          <Upload size={48} className="mb-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           <p className="font-medium text-foreground">
             Drop candidate resume here or{" "}
-            <span className="text-primary font-semibold">Browse Files</span>
+            <span className="text-foreground font-semibold underline underline-offset-2">Browse Files</span>
           </p>
           <p className="text-sm text-muted-foreground mt-1">
             Supports PDF and DOCX

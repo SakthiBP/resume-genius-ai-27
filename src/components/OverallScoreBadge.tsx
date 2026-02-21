@@ -4,18 +4,6 @@ interface OverallScoreBadgeProps {
   score: number;
 }
 
-const getScoreColor = (score: number) => {
-  if (score >= 70) return "bg-score-green";
-  if (score >= 40) return "bg-score-yellow";
-  return "bg-score-red";
-};
-
-const getScoreTextColor = (score: number) => {
-  if (score >= 70) return "text-score-green";
-  if (score >= 40) return "text-score-yellow";
-  return "text-score-red";
-};
-
 const OverallScoreBadge = ({ score }: OverallScoreBadgeProps) => {
   const [displayScore, setDisplayScore] = useState(0);
 
@@ -37,9 +25,9 @@ const OverallScoreBadge = ({ score }: OverallScoreBadgeProps) => {
   }, [score]);
 
   return (
-    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full ${getScoreColor(score)} text-sm font-semibold text-white`}>
+    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-card text-sm font-semibold text-foreground">
       <span className="text-lg tabular-nums">{displayScore}</span>
-      <span className="opacity-90 font-medium">Overall score</span>
+      <span className="opacity-70 font-medium">Overall score</span>
     </div>
   );
 };
