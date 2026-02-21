@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, RefreshCw } from "lucide-react";
+import { FileText, RefreshCw, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,9 +63,11 @@ interface DocumentPanelProps {
   onFileChange: (file: File | null) => void;
   jobDescription: string;
   onJobDescriptionChange: (val: string) => void;
+  onAnalyze: (file: File) => void;
+  isAnalyzing: boolean;
 }
 
-const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionChange }: DocumentPanelProps) => {
+const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionChange, onAnalyze, isAnalyzing }: DocumentPanelProps) => {
   const [jobModalOpen, setJobModalOpen] = useState(false);
 
   const wordCount = MOCK_RESUME_TEXT.split(/\s+/).length;
@@ -106,6 +108,21 @@ const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionCha
           <span className="font-medium text-foreground">{file.name}</span>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            size="sm"
+            onClick={() => onAnalyze(file)}
+            disabled={isAnalyzing}
+            className="gap-2"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Analyzing…
+              </>
+            ) : (
+              "Analyze Resume"
+            )}
+          </Button>
           <Dialog open={jobModalOpen} onOpenChange={setJobModalOpen}>
             <DialogTrigger asChild>
               <button className="text-xs text-primary hover:underline">Job description</button>

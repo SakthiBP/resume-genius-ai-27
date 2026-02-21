@@ -2,60 +2,129 @@ import ScoreBar from "./ScoreBar";
 import InsightCard, { type Insight } from "./InsightCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Timer, DollarSign, Clock } from "lucide-react";
-
-const MOCK_INSIGHTS: Insight[] = [
-  {
-    id: "1", type: "red-flag", category: "Employment Gap",
-    title: "No employment gaps detected",
-    detail: "Candidate shows continuous employment from June 2016 to present. No unexplained breaks in work history — low risk.",
-    severity: "low",
-  },
-  {
-    id: "2", type: "red-flag", category: "Vague Claims",
-    title: "StartupXYZ role lacks business impact metrics",
-    detail: "Candidate mentions 500K concurrent users but does not quantify business outcomes like revenue, retention, or cost savings. Probe this in interview.",
-    severity: "medium",
-  },
-  {
-    id: "3", type: "suggestion", category: "Interview Focus Area",
-    title: "Verify system design depth",
-    detail: "Candidate claims microservices migration and 50K req/s throughput. Recommend a system design interview round to validate architectural decision-making.",
-  },
-  {
-    id: "4", type: "suggestion", category: "Skill Verification",
-    title: "Test Go and Kubernetes proficiency",
-    detail: "Go and Kubernetes are listed but not demonstrated in any role description. Consider a hands-on coding exercise or take-home to verify.",
-  },
-  {
-    id: "5", type: "skill", category: "Technical Skills",
-    title: "Strong modern tech stack alignment",
-    detail: "Candidate's technical skills are current and well-aligned with market demands for senior engineering roles.",
-    badges: ["TypeScript", "Python", "Go", "React", "AWS", "Docker", "Kubernetes", "PostgreSQL"],
-  },
-  {
-    id: "6", type: "skill", category: "Soft Skills",
-    title: "Clear leadership and mentoring signals",
-    detail: "Resume demonstrates hands-on mentoring, team leadership, and cross-functional collaboration — strong senior/staff indicators.",
-    badges: ["Mentoring", "Team Lead", "Cross-functional", "Code Review"],
-  },
-  {
-    id: "7", type: "experience", category: "Career Progression",
-    title: "Strong upward trajectory — 7+ years",
-    detail: "Clear Junior → Mid → Senior progression across three companies with increasing scope. Indicates growth mindset and promotability.",
-  },
-  {
-    id: "8", type: "experience", category: "Role Fit",
-    title: "Strong Yes — highly qualified for Senior SWE",
-    detail: "Candidate meets or exceeds requirements across technical skills, experience depth, and leadership. Recommend advancing to technical interview.",
-  },
-];
+import type { AnalysisResult } from "@/types/analysis";
 
 interface AnalysisSidebarProps {
   isLoading: boolean;
   hasResults: boolean;
+  result: AnalysisResult | null;
 }
 
-const AnalysisSidebar = ({ isLoading, hasResults }: AnalysisSidebarProps) => {
+function mapResultToInsights(r: AnalysisResult): Insight[] {
+  const insights: Insight[] = [];
+  let id = 0;
+
+  // Red flags - employment gaps
+  for (const gap of r.red_flags.employment_gaps) {
+    insights.push({
+      id: String(++id),
+      type: "red-flag",
+      category: "Employment Gap",
+      title: `${gap.period} (${gap.duration_months} months)`,
+      detail: `Employment gap detected during ${gap.period}.`,
+      severity: gap.severity,
+    });
+  }
+
+  // Red flags - inconsistencies
+  for (const inc of r.red_flags.inconsistencies) {
+    insights.push({
+      id: String(++id),
+      type: "red-flag",
+      category: "Inconsistency",
+      title: inc,
+      detail: inc,
+      severity: "medium",
+    });
+  }
+
+  // Red flags - vague descriptions
+  for (const vague of r.red_flags.vague_descriptions) {
+    insights.push({
+      id: String(++id),
+      type: "red-flag",
+      category: "Vague Claims",
+      title: vague,
+      detail: vague,
+      severity: "medium",
+    });
+  }
+
+  // If no red flags, add a positive note
+  if (r.red_flags.red_flag_count === 0) {
+    insights.push({
+      id: String(++id),
+      type: "red-flag",
+      category: "Employment Gap",
+      title: "No red flags detected",
+      detail: "Candidate shows no employment gaps, inconsistencies, or vague claims.",
+      severity: "low",
+    });
+  }
+
+  // Suggestions from improvement_suggestions
+  for (const suggestion of r.overall_score.improvement_suggestions.slice(0, 2)) {
+    insights.push({
+      id: String(++id),
+      type: "suggestion",
+      category: "Interview Focus Area",
+      title: suggestion,
+      detail: suggestion,
+    });
+  }
+
+  // Skills
+  insights.push({
+    id: String(++id),
+    type: "skill",
+    category: "Technical Skills",
+    title: `${r.skills_extraction.technical_skills.length} technical skills identified`,
+    detail: r.skills_extraction.skill_match_percentage
+      ? `Skill match: ${r.skills_extraction.skill_match_percentage}%`
+      : "Technical skills extracted from resume.",
+    badges: r.skills_extraction.technical_skills.slice(0, 10),
+  });
+
+  if (r.skills_extraction.soft_skills.length > 0) {
+    insights.push({
+      id: String(++id),
+      type: "skill",
+      category: "Soft Skills",
+      title: `${r.skills_extraction.soft_skills.length} soft skills identified`,
+      detail: "Soft skills extracted from resume content.",
+      badges: r.skills_extraction.soft_skills,
+    });
+  }
+
+  // Experience / Role Fit
+  const recMap: Record<string, string> = {
+    strong_yes: "Strong Yes",
+    yes: "Yes",
+    maybe: "Maybe",
+    no: "No",
+    strong_no: "Strong No",
+  };
+
+  insights.push({
+    id: String(++id),
+    type: "experience",
+    category: "Career Progression",
+    title: `${r.experience_quality.total_years}+ years — ${r.experience_quality.progression.replace("_", " ")} trajectory`,
+    detail: r.experience_quality.notes,
+  });
+
+  insights.push({
+    id: String(++id),
+    type: "experience",
+    category: "Role Fit",
+    title: `${recMap[r.overall_score.recommendation] || r.overall_score.recommendation} — ${r.summary}`,
+    detail: r.summary,
+  });
+
+  return insights;
+}
+
+const AnalysisSidebar = ({ isLoading, hasResults, result }: AnalysisSidebarProps) => {
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
@@ -78,13 +147,16 @@ const AnalysisSidebar = ({ isLoading, hasResults }: AnalysisSidebarProps) => {
     );
   }
 
-  if (!hasResults) {
+  if (!hasResults || !result) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <p className="text-sm text-muted-foreground text-center">Upload a candidate resume to see screening results</p>
+        <p className="text-sm text-muted-foreground text-center">Upload a candidate resume and click "Analyze Resume" to see screening results</p>
       </div>
     );
   }
+
+  const insights = mapResultToInsights(result);
+  const metrics = result.agent_metrics;
 
   return (
     <div className="flex flex-col h-full">
@@ -93,14 +165,13 @@ const AnalysisSidebar = ({ isLoading, hasResults }: AnalysisSidebarProps) => {
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-4">Candidate Evaluation</h3>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <ScoreBar label="Sentiment" score={85} delay={100} />
-            <ScoreBar label="Relevance" score={72} delay={200} />
-            <ScoreBar label="Skills Match" score={90} delay={300} />
-            <ScoreBar label="Experience" score={78} delay={400} />
+            <ScoreBar label="Sentiment" score={result.sentiment_analysis.score} delay={100} />
+            <ScoreBar label="Relevance" score={result.usefulness_score.relevance_to_role} delay={200} />
+            <ScoreBar label="Skills Match" score={result.skills_extraction.skill_match_percentage ?? result.usefulness_score.score} delay={300} />
+            <ScoreBar label="Experience" score={result.experience_quality.score} delay={400} />
           </div>
         </div>
 
-        {/* Divider */}
         <div className="border-t border-border" />
 
         {/* Insight Cards */}
@@ -108,11 +179,11 @@ const AnalysisSidebar = ({ isLoading, hasResults }: AnalysisSidebarProps) => {
           <div className="flex items-center gap-2 mb-4">
             <h3 className="text-sm font-semibold text-foreground">Recruiter Insights</h3>
             <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-              {MOCK_INSIGHTS.length}
+              {insights.length}
             </span>
           </div>
           <div className="space-y-2">
-            {MOCK_INSIGHTS.map((insight, i) => (
+            {insights.map((insight, i) => (
               <InsightCard key={insight.id} insight={insight} index={i} />
             ))}
           </div>
@@ -122,9 +193,9 @@ const AnalysisSidebar = ({ isLoading, hasResults }: AnalysisSidebarProps) => {
       {/* Agent Economics Footer */}
       <div className="border-t border-border bg-accent/50 px-6 py-3">
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><Timer className="h-3 w-3" /> 8s</span>
-          <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> $0.03</span>
-          <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> 20 min saved</span>
+          <span className="flex items-center gap-1"><Timer className="h-3 w-3" /> {metrics.processing_time_seconds ?? "—"}s</span>
+          <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> ${metrics.cost_estimate_usd?.toFixed(2) ?? "0.03"}</span>
+          <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {metrics.estimated_manual_review_minutes} min saved</span>
         </div>
         <p className="text-[10px] text-muted-foreground/60 mt-1">200× faster than manual screening</p>
       </div>
