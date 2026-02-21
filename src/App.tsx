@@ -11,7 +11,7 @@ import Candidates from "./pages/Candidates";
 import CandidateProfile from "./pages/CandidateProfile";
 import Roles from "./pages/Roles";
 import ROIDashboard from "./pages/ROIDashboard";
-import BatchUpload from "./pages/BatchUpload";
+
 import CandidateRecommendations from "./pages/CandidateRecommendations";
 import DataSources from "./pages/DataSources";
 import ExternalProfileView from "./pages/ExternalProfileView";
@@ -34,7 +34,7 @@ const App = () => (
               <Route path="/candidates/:id" element={<CandidateProfile />} />
               <Route path="/roles" element={<Roles />} />
               <Route path="/roi" element={<ROIDashboard />} />
-              <Route path="/batch" element={<BatchUpload />} />
+              
               <Route path="/candidate-recommendations" element={<CandidateRecommendations />} />
               <Route path="/data-sources" element={<DataSources />} />
               <Route path="/external-profiles/:id" element={<ExternalProfileView />} />

@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import FileUploadZone from "./FileUploadZone";
+import StagingQueuePanel from "./StagingQueuePanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useStagingQueue, type StagedFile } from "@/contexts/StagingQueueContext";
@@ -146,38 +147,7 @@ const DocumentPanel = ({
           {sourceTab === "upload" ? (
             <FileUploadZone file={null} onFileChange={onFileChange} />
           ) : (
-            <div className="border border-border bg-card">
-              {pendingFiles.length === 0 ? (
-                <div className="p-10 text-center">
-                  <PackageCheck className="h-8 w-8 mx-auto mb-3 text-muted-foreground opacity-40" />
-                  <p className="text-sm text-muted-foreground">No pending files in queue.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Upload files from the Batch Upload page first.</p>
-                </div>
-              ) : (
-                <div>
-                  <div className="px-4 py-3 border-b border-border text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                    Select a pending file to analyse
-                  </div>
-                  {pendingFiles.map((sf) => (
-                    <button
-                      key={sf.id}
-                      onClick={() => handleSelectFromQueue(sf)}
-                      disabled={isExtracting}
-                      className="w-full flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0 hover:bg-accent transition-colors duration-200 text-left"
-                    >
-                      <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{sf.fileName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {(sf.fileSize / 1024).toFixed(1)} KB
-                        </p>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground uppercase">Pending</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <StagingQueuePanel onSelectFile={(sf) => handleSelectFromQueue(sf)} />
           )}
         </div>
       </div>
