@@ -57,25 +57,55 @@ const EmailPreviewModal = ({
     return null;
   };
 
-  const handleSend = async () => {
+  const handleSend = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (sending) return;
     setSending(true);
     try {
       const edited = subjectEdited || bodyEdited;
       await onSend(subject, body, edited, getEditSummary());
+    } catch (err) {
+      console.error("EmailPreviewModal handleSend error:", err);
     } finally {
       setSending(false);
     }
   };
 
-  const handleReset = () => {
+  const handleCancel = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (sending) return;
+    onCancel();
+  };
+
+  const handleReset = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setSubject(templateSubject);
     setBody(templateBody);
     setShowResetConfirm(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o && !sending) {
+          onCancel();
+        }
+      }}
+    >
+      <DialogContent
+        className="sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={(e) => {
+          if (sending) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (sending) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
@@ -134,13 +164,14 @@ const EmailPreviewModal = ({
           {showResetConfirm && (
             <div className="flex items-center gap-2 p-3 bg-muted border border-border text-sm">
               <span>Reset all changes?</span>
-              <Button size="sm" variant="destructive" onClick={handleReset}>
+              <Button type="button" size="sm" variant="destructive" onClick={handleReset}>
                 Yes, reset
               </Button>
               <Button
+                type="button"
                 size="sm"
                 variant="outline"
-                onClick={() => setShowResetConfirm(false)}
+                onClick={(e) => { e.stopPropagation(); setShowResetConfirm(false); }}
               >
                 Keep editing
               </Button>
@@ -150,8 +181,9 @@ const EmailPreviewModal = ({
           {/* Actions */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
             <Button
+              type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={sending}
               className="gap-2"
             >
@@ -159,12 +191,14 @@ const EmailPreviewModal = ({
               Cancel &amp; revert status
             </Button>
             <Button
+              type="button"
               variant="outline"
-              onClick={() =>
-                subjectEdited || bodyEdited
-                  ? setShowResetConfirm(true)
-                  : null
-              }
+              onClick={(e) => {
+                e.stopPropagation();
+                if (subjectEdited || bodyEdited) {
+                  setShowResetConfirm(true);
+                }
+              }}
               disabled={sending || (!subjectEdited && !bodyEdited)}
               className="gap-2"
             >
@@ -172,6 +206,7 @@ const EmailPreviewModal = ({
               Reset to template
             </Button>
             <Button
+              type="button"
               onClick={handleSend}
               disabled={sending || !subject.trim() || !body.trim()}
               className="gap-2 ml-auto bg-green-600 hover:bg-green-700 text-white"

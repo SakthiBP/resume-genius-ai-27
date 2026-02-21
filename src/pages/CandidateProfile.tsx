@@ -370,31 +370,32 @@ const CandidateProfile = () => {
   };
 
   const handleEmailCancel = async () => {
-    if (!candidate || !pendingStatus) return;
-
-    try {
-      // Call cancel action to revert status & log
-      await supabase.functions.invoke("send-email", {
-        body: {
-          candidate_id: candidate.id,
-          candidate_email: candidate.email,
-          subject: emailTemplate.subject,
-          email_body: emailTemplate.body,
-          status_attempted: pendingStatus,
-          previous_status: previousStatus,
-          action: "cancel",
-        },
-      });
-    } catch (err: any) {
-      console.error("Email cancel error:", err);
-    }
-
-    // Revert local state
-    if (previousStatus) {
-      setCandidate((prev) => prev ? { ...prev, status: previousStatus } : prev);
-    }
-
+    // Always close the modal first
     setShowEmailPreview(false);
+
+    if (candidate && pendingStatus) {
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            candidate_id: candidate.id,
+            candidate_email: candidate.email,
+            subject: emailTemplate.subject,
+            email_body: emailTemplate.body,
+            status_attempted: pendingStatus,
+            previous_status: previousStatus,
+            action: "cancel",
+          },
+        });
+      } catch (err: any) {
+        console.error("Email cancel error:", err);
+      }
+
+      // Revert local state
+      if (previousStatus) {
+        setCandidate((prev) => prev ? { ...prev, status: previousStatus } : prev);
+      }
+    }
+
     setPendingStatus(null);
     setPreviousStatus(null);
     toast({ title: "Cancelled", description: "Status reverted. No email sent." });
