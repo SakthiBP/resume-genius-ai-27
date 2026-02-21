@@ -476,36 +476,35 @@ const ROIDashboard = () => {
             </div>
           </div>
 
-          {/* ── Cumulative Savings Area Chart ─────────── */}
-          {candidates.length > 0 && (
-            <Card className="border border-border bg-card mb-8 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
-              <CardContent className="p-6">
-                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  Cumulative Value Generated Over Time
-                </h2>
-                <ChartContainer config={{ saved: { label: "Cumulative Saved", color: "hsl(var(--score-green))" } }} className="h-[240px] w-full">
-                  <AreaChart
-                    data={(() => {
-                      let cumSaved = 0;
-                      return [...candidates].reverse().map((c, i) => {
-                        const tu = getTokenUsage(c.analysis_json);
-                        const manMins = getManualMins(c.analysis_json);
-                        cumSaved += ((manMins / 60) * HUMAN_HOURLY_RATE) - tu.cost;
-                        return { index: i + 1, saved: Number(cumSaved.toFixed(2)) };
-                      });
-                    })()}
-                    margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
-                    <XAxis dataKey="index" tick={{ fontSize: 11 }} className="fill-muted-foreground" label={{ value: "Analyses", position: "insideBottom", offset: -2, fontSize: 10, className: "fill-muted-foreground" }} />
-                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `£${v}`} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area type="monotone" dataKey="saved" name="Cumulative Saved" stroke="hsl(var(--score-green))" fill="hsl(var(--score-green))" fillOpacity={0.15} strokeWidth={2} />
-                  </AreaChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          )}
+          {/* ── Projected Cumulative Savings Chart ─────────── */}
+          <Card className="border border-border bg-card mb-8 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+            <CardContent className="p-6">
+              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                Projected Cumulative Value — 0 to 10,000 Analyses
+              </h2>
+              <ChartContainer config={{ saved: { label: "Cumulative Saved", color: "hsl(var(--score-green))" } }} className="h-[240px] w-full">
+                <AreaChart
+                  data={(() => {
+                    const avgCost = metrics.avgCostPerCV || 0.015;
+                    const humanPerCV = (20 / 60) * HUMAN_HOURLY_RATE;
+                    const savingPerCV = humanPerCV - avgCost;
+                    const steps = [0, 100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000];
+                    return steps.map((n) => ({
+                      index: n,
+                      saved: Number((n * savingPerCV).toFixed(2)),
+                    }));
+                  })()}
+                  margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
+                  <XAxis dataKey="index" tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v.toLocaleString()} label={{ value: "Analyses", position: "insideBottom", offset: -2, fontSize: 10, className: "fill-muted-foreground" }} />
+                  <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `£${v.toLocaleString()}`} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Area type="monotone" dataKey="saved" name="Cumulative Saved" stroke="hsl(var(--score-green))" fill="hsl(var(--score-green))" fillOpacity={0.15} strokeWidth={2} />
+                </AreaChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
 
           {/* ── Bottom Summary ────────────────────────── */}
           <div className="animate-fade-in-up text-center pb-12" style={{ animationDelay: "0.45s" }}>
