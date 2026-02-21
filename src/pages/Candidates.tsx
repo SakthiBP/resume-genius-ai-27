@@ -233,7 +233,7 @@ const Candidates = () => {
                     </span>
 
                     {/* Status pill (read-only) */}
-                    <Badge className={`text-[10px] px-2.5 py-0.5 ${statusOpt.color} border-0 pointer-events-none shrink-0 hover:bg-none`}>
+                    <Badge className={`text-[10px] px-2.5 py-0.5 ${statusOpt.color} border-0 pointer-events-none shrink-0`}>
                       {statusOpt.label}
                     </Badge>
                   </div>
