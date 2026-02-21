@@ -133,6 +133,110 @@ export type Database = {
         }
         Relationships: []
       }
+      external_profiles: {
+        Row: {
+          created_at: string | null
+          education: Json | null
+          email: string | null
+          error_message: string | null
+          experience: Json | null
+          full_name: string | null
+          headline: string | null
+          id: string
+          links: Json | null
+          location: string | null
+          phone: string | null
+          profile_summary: string | null
+          projects: Json | null
+          raw_json: Json | null
+          raw_text: string | null
+          skills: Json | null
+          source: string
+          source_url: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          education?: Json | null
+          email?: string | null
+          error_message?: string | null
+          experience?: Json | null
+          full_name?: string | null
+          headline?: string | null
+          id?: string
+          links?: Json | null
+          location?: string | null
+          phone?: string | null
+          profile_summary?: string | null
+          projects?: Json | null
+          raw_json?: Json | null
+          raw_text?: string | null
+          skills?: Json | null
+          source: string
+          source_url?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string | null
+          education?: Json | null
+          email?: string | null
+          error_message?: string | null
+          experience?: Json | null
+          full_name?: string | null
+          headline?: string | null
+          id?: string
+          links?: Json | null
+          location?: string | null
+          phone?: string | null
+          profile_summary?: string | null
+          projects?: Json | null
+          raw_json?: Json | null
+          raw_text?: string | null
+          skills?: Json | null
+          source?: string
+          source_url?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      imports: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          external_profile_id: string | null
+          id: string
+          input: Json | null
+          status: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          external_profile_id?: string | null
+          id?: string
+          input?: Json | null
+          status?: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          external_profile_id?: string | null
+          id?: string
+          input?: Json | null
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imports_external_profile_id_fkey"
+            columns: ["external_profile_id"]
+            isOneToOne: false
+            referencedRelation: "external_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recruitment_email_log: {
         Row: {
           body: string
