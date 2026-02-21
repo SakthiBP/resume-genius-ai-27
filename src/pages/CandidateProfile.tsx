@@ -22,15 +22,9 @@ import {
   DollarSign,
   Clock,
   Loader2,
+  FileText,
   ChevronDown,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   RadarChart,
   PolarGrid,
@@ -909,20 +903,28 @@ const CandidateProfile = () => {
                 <AlertTriangle className="h-4 w-4" />
                 Deny
               </Button>
-
-              {/* Assign Stage dropdown */}
-              <Select
-                value={candidate.status === "online_assessment" || candidate.status === "interview" ? candidate.status : ""}
-                onValueChange={updateStatus}
+              <Button
+                onClick={() => updateStatus("interview")}
+                className={`gap-2 text-sm font-semibold px-6 py-2.5 transition-all duration-200 ${
+                  candidate.status === "interview"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-background"
+                    : "bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-600/40"
+                }`}
               >
-                <SelectTrigger className="w-[200px] h-10 text-sm border-border">
-                  <SelectValue placeholder="Assign Stage" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="online_assessment">Online Assessment</SelectItem>
-                  <SelectItem value="interview">Interview</SelectItem>
-                </SelectContent>
-              </Select>
+                <Mail className="h-4 w-4" />
+                Interview
+              </Button>
+              <Button
+                onClick={() => updateStatus("online_assessment")}
+                className={`gap-2 text-sm font-semibold px-6 py-2.5 transition-all duration-200 ${
+                  candidate.status === "online_assessment"
+                    ? "bg-amber-500 hover:bg-amber-600 text-white ring-2 ring-amber-400 ring-offset-2 ring-offset-background"
+                    : "bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/40"
+                }`}
+              >
+                <FileText className="h-4 w-4" />
+                Online Assessment
+              </Button>
             </div>
           </section>
 
