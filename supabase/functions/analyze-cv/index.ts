@@ -314,22 +314,59 @@ serve(async (req) => {
       actual_cost_usd: parseFloat(cost.toFixed(4))
     };
 
-    // Save to candidates table
+    // Save to candidates table — upsert by name + email to prevent duplicates
     try {
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
-      await supabaseClient.from('candidates').insert({
-        candidate_name: analysis.candidate_name || 'Unknown',
-        email: analysis.email || null,
-        overall_score: analysis.overall_score?.composite_score ?? 0,
-        recommendation: analysis.overall_score?.recommendation ?? 'maybe',
-        analysis_json: analysis,
-        cv_text: cv_text,
-        job_description: job_description || null,
-        status: 'pending',
-      });
+
+      const candidateName = analysis.candidate_name || 'Unknown';
+      const candidateEmail = analysis.email || null;
+
+      // Check for existing candidate with same name AND email
+      let existingQuery = supabaseClient
+        .from('candidates')
+        .select('id, status')
+        .eq('candidate_name', candidateName);
+
+      if (candidateEmail) {
+        existingQuery = existingQuery.eq('email', candidateEmail);
+      } else {
+        existingQuery = existingQuery.is('email', null);
+      }
+
+      const { data: existing } = await existingQuery.maybeSingle();
+
+      if (existing) {
+        // Update existing record; preserve status unless it was still 'pending'
+        const updatePayload: Record<string, unknown> = {
+          overall_score: analysis.overall_score?.composite_score ?? 0,
+          recommendation: analysis.overall_score?.recommendation ?? 'maybe',
+          analysis_json: analysis,
+          cv_text: cv_text,
+          job_description: job_description || null,
+          created_at: new Date().toISOString(),
+        };
+        if (existing.status === 'pending') {
+          updatePayload.status = 'pending';
+        }
+        await supabaseClient.from('candidates').update(updatePayload).eq('id', existing.id);
+        console.log("Updated existing candidate:", existing.id);
+      } else {
+        // Insert new candidate
+        await supabaseClient.from('candidates').insert({
+          candidate_name: candidateName,
+          email: candidateEmail,
+          overall_score: analysis.overall_score?.composite_score ?? 0,
+          recommendation: analysis.overall_score?.recommendation ?? 'maybe',
+          analysis_json: analysis,
+          cv_text: cv_text,
+          job_description: job_description || null,
+          status: 'pending',
+        });
+        console.log("Inserted new candidate:", candidateName);
+      }
     } catch (dbErr) {
       console.error("Failed to save candidate:", dbErr);
     }
