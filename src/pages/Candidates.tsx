@@ -218,7 +218,7 @@ const Candidates = () => {
                     </div>
 
                     {/* Score badge */}
-                    <Badge variant="outline" className={`text-xs font-bold tabular-nums ${getScoreBadgeClasses(c.overall_score)}`}>
+                    <Badge variant="outline" className={`text-xs font-bold tabular-nums w-10 justify-center ${getScoreBadgeClasses(c.overall_score)}`}>
                       {c.overall_score}
                     </Badge>
 
