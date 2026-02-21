@@ -85,6 +85,40 @@ interface Candidate {
   created_at: string;
 }
 
+/* ── compat helpers for old/new analysis shapes ── */
+function getTechSkills(r: AnalysisResult): string[] {
+  return r.skills_assessment?.technical_skills ?? r.skills_extraction?.technical_skills ?? [];
+}
+function getSoftSkills(r: AnalysisResult): string[] {
+  return r.skills_assessment?.soft_skills ?? r.skills_extraction?.soft_skills ?? [];
+}
+function getCerts(r: AnalysisResult): string[] {
+  return r.skills_assessment?.certifications ?? r.skills_extraction?.certifications ?? [];
+}
+function getTotalYears(r: AnalysisResult): number {
+  return r.work_experience?.total_years ?? r.experience_quality?.total_years ?? 0;
+}
+function getProgression(r: AnalysisResult): string {
+  return r.work_experience?.progression ?? r.experience_quality?.progression ?? "unclear";
+}
+function getExperienceScore(r: AnalysisResult): number {
+  return r.work_experience?.score ?? r.experience_quality?.score ?? 0;
+}
+function getExperienceHighlights(r: AnalysisResult): string[] {
+  if (r.work_experience?.roles) return r.work_experience.roles.flatMap((role) => role.highlights ?? []);
+  return r.experience_quality?.highlights ?? [];
+}
+function getExperienceNotes(r: AnalysisResult): string {
+  return r.work_experience?.notes ?? r.experience_quality?.notes ?? "";
+}
+function getSkillMatchPct(r: AnalysisResult): number | null {
+  if (r.skills_assessment) return r.skills_assessment.skill_match_percentage;
+  return r.skills_extraction?.skill_match_percentage ?? null;
+}
+function getRelevance(r: AnalysisResult): number {
+  return r.job_description_match?.score ?? r.usefulness_score?.relevance_to_role ?? 0;
+}
+
 function generateReport(r: AnalysisResult): string {
   const recMap: Record<string, string> = {
     strong_yes: "a strong recommendation to proceed",
@@ -101,16 +135,19 @@ function generateReport(r: AnalysisResult): string {
     unclear: "an unclear",
   };
 
-  const techCount = r.skills_extraction.technical_skills.length;
-  const softCount = r.skills_extraction.soft_skills.length;
-  const certCount = r.skills_extraction.certifications.length;
+  const techCount = getTechSkills(r).length;
+  const softCount = getSoftSkills(r).length;
+  const certCount = getCerts(r).length;
   const flagCount = r.red_flags.red_flag_count;
+  const years = getTotalYears(r);
+  const progression = getProgression(r);
 
-  let report = `${r.candidate_name} presents ${r.experience_quality.total_years}+ years of professional experience with ${progMap[r.experience_quality.progression] || "an"} career trajectory. `;
+  let report = `${r.candidate_name} presents ${years}+ years of professional experience with ${progMap[progression] || "an"} career trajectory. `;
   report += `The candidate demonstrates ${techCount} technical skill${techCount !== 1 ? "s" : ""}, ${softCount} soft skill${softCount !== 1 ? "s" : ""}, and holds ${certCount} certification${certCount !== 1 ? "s" : ""}. `;
 
-  if (r.skills_extraction.skill_match_percentage) {
-    report += `Skill alignment with the role is estimated at ${r.skills_extraction.skill_match_percentage}%. `;
+  const matchPct = getSkillMatchPct(r);
+  if (matchPct) {
+    report += `Skill alignment with the role is estimated at ${matchPct}%. `;
   }
 
   report += `Sentiment analysis indicates a ${r.sentiment_analysis.tone} tone with ${r.sentiment_analysis.confidence_level} confidence. `;
@@ -132,10 +169,10 @@ function generateReport(r: AnalysisResult): string {
 }
 
 function generateRoleFit(r: AnalysisResult): string {
-  const techSkills = r.skills_extraction.technical_skills.slice(0, 4).join(", ");
-  const softSkills = r.skills_extraction.soft_skills.slice(0, 2).join(" and ");
-  const years = r.experience_quality.total_years;
-  const progression = r.experience_quality.progression.replace("_", " ");
+  const techSkills = getTechSkills(r).slice(0, 4).join(", ");
+  const softSkills = getSoftSkills(r).slice(0, 2).join(" and ");
+  const years = getTotalYears(r);
+  const progression = getProgression(r).replace("_", " ");
 
   let fit = `Based on ${years}+ years of experience with a ${progression} career trajectory`;
   if (techSkills) fit += ` and demonstrated proficiency in ${techSkills}`;
@@ -150,9 +187,11 @@ function generateRoleFit(r: AnalysisResult): string {
     fit += "a junior or associate-level position ";
   }
 
-  if (r.skills_extraction.technical_skills.length > r.skills_extraction.soft_skills.length * 2) {
+  const tech = getTechSkills(r);
+  const soft = getSoftSkills(r);
+  if (tech.length > soft.length * 2) {
     fit += "in a technically-focused team where deep domain expertise is valued";
-  } else if (r.skills_extraction.soft_skills.length >= r.skills_extraction.technical_skills.length) {
+  } else if (soft.length >= tech.length) {
     fit += "in a collaborative, cross-functional environment where communication and stakeholder engagement are key";
   } else {
     fit += "that balances technical execution with team collaboration";
@@ -268,20 +307,22 @@ const CandidateProfile = () => {
   const rec = REC_LABELS[candidate.recommendation] || { label: candidate.recommendation, color: "score-badge-muted" };
   const statusOpt = STATUS_OPTIONS.find((s) => s.value === candidate.status) || STATUS_OPTIONS[0];
 
-  // Chart data
+  // Chart data — supports both old and new analysis formats
   const radarData = [
     { dimension: "Sentiment", score: r.sentiment_analysis.score },
-    { dimension: "Relevance", score: r.usefulness_score.relevance_to_role },
-    { dimension: "Skills", score: r.skills_extraction.skill_match_percentage ?? r.usefulness_score.score },
-    { dimension: "Experience", score: r.experience_quality.score },
+    { dimension: "JD Match", score: getRelevance(r) },
+    { dimension: "Skills", score: getSkillMatchPct(r) ?? 0 },
+    { dimension: "Experience", score: getExperienceScore(r) },
+    ...(r.education ? [{ dimension: "Education", score: r.education.score }] : []),
+    ...(r.right_to_work ? [{ dimension: "Right to Work", score: r.right_to_work.score }] : []),
   ];
 
   const barData = radarData.map((d) => ({ ...d, baseline: 50 }));
 
   const skillsPieData = [
-    { name: "Technical", value: r.skills_extraction.technical_skills.length },
-    { name: "Soft Skills", value: r.skills_extraction.soft_skills.length },
-    { name: "Certifications", value: r.skills_extraction.certifications.length },
+    { name: "Technical", value: getTechSkills(r).length },
+    { name: "Soft Skills", value: getSoftSkills(r).length },
+    { name: "Certifications", value: getCerts(r).length },
   ].filter((d) => d.value > 0);
 
   const severityCounts = { low: 0, medium: 0, high: 0 };
@@ -441,22 +482,21 @@ const CandidateProfile = () => {
             <h3 className="text-sm font-semibold text-foreground mb-3 uppercase">Career Progression</h3>
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary" className="text-xs pointer-events-none">
-                {r.experience_quality.total_years}+ years
+                {getTotalYears(r)}+ years
               </Badge>
               <Badge variant="outline" className="text-xs pointer-events-none capitalize">
-                {r.experience_quality.progression.replace("_", " ")} trajectory
+                {getProgression(r).replace("_", " ")} trajectory
               </Badge>
             </div>
-            {r.experience_quality.highlights.length > 0 && (
+            {getExperienceHighlights(r).length > 0 && (
               <ul className="space-y-1.5 mt-3">
-                {r.experience_quality.highlights.map((h, i) => (
+                {getExperienceHighlights(r).map((h, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
                     <Briefcase className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
                     {h}
                   </li>
-                ))
-              }
-            </ul>
+                ))}
+              </ul>
             )}
           </section>
 
@@ -464,36 +504,33 @@ const CandidateProfile = () => {
           <section className="bg-card border border-border p-6">
             <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Skills & Certifications</h3>
             <div className="space-y-4">
-              {r.skills_extraction.technical_skills.length > 0 && (
+              {getTechSkills(r).length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5"><Zap className="h-3 w-3" /> Technical Skills</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {r.skills_extraction.technical_skills.map((s) => (
+                    {getTechSkills(r).map((s) => (
                       <Badge key={s} variant="secondary" className="text-[10px] px-2 py-0.5 font-normal pointer-events-none">{s}</Badge>
-                    ))
-                    }
+                    ))}
                   </div>
                 </div>
               )}
-              {r.skills_extraction.soft_skills.length > 0 && (
+              {getSoftSkills(r).length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-2">Soft Skills</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {r.skills_extraction.soft_skills.map((s) => (
+                    {getSoftSkills(r).map((s) => (
                       <Badge key={s} variant="outline" className="text-[10px] px-2 py-0.5 font-normal pointer-events-none">{s}</Badge>
-                    ))
-                    }
+                    ))}
                   </div>
                 </div>
               )}
-              {r.skills_extraction.certifications.length > 0 && (
+              {getCerts(r).length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5"><Award className="h-3 w-3" /> Certifications</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {r.skills_extraction.certifications.map((c) => (
+                    {getCerts(r).map((c) => (
                       <Badge key={c} variant="secondary" className="text-[10px] px-2 py-0.5 font-normal pointer-events-none">{c}</Badge>
-                    ))
-                    }
+                    ))}
                   </div>
                 </div>
               )}

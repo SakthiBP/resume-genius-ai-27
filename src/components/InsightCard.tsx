@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { AlertTriangle, Lightbulb, Zap, Briefcase, ChevronDown } from "lucide-react";
+import { AlertTriangle, Lightbulb, Zap, Briefcase, ChevronDown, GraduationCap, Globe, FileSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
-export type InsightType = "red-flag" | "suggestion" | "skill" | "experience";
+export type InsightType = "red-flag" | "suggestion" | "skill" | "experience" | "education" | "right-to-work" | "jd-match";
 
 export interface Insight {
   id: string;
@@ -13,6 +13,9 @@ export interface Insight {
   detail: string;
   severity?: "low" | "medium" | "high";
   badges?: string[];
+  badgeVariant?: "matched" | "missing";
+  badgesMatched?: string[];
+  badgesMissing?: string[];
 }
 
 interface InsightCardProps {
@@ -25,6 +28,9 @@ const typeConfig: Record<InsightType, { icon: typeof AlertTriangle; label: strin
   suggestion: { icon: Lightbulb, label: "Recommendation", accent: "text-foreground", bgAccent: "bg-foreground/10" },
   skill: { icon: Zap, label: "Strength", accent: "text-score-green", bgAccent: "bg-score-green/10" },
   experience: { icon: Briefcase, label: "Role Fit", accent: "text-score-purple", bgAccent: "bg-score-purple/10" },
+  education: { icon: GraduationCap, label: "Education", accent: "text-score-blue", bgAccent: "bg-score-blue/10" },
+  "right-to-work": { icon: Globe, label: "Right to Work", accent: "text-score-yellow", bgAccent: "bg-score-yellow/10" },
+  "jd-match": { icon: FileSearch, label: "JD Match", accent: "text-score-blue", bgAccent: "bg-score-blue/10" },
 };
 
 const severityColors: Record<string, string> = {
@@ -63,6 +69,25 @@ const InsightCard = ({ insight, index }: InsightCardProps) => {
           {expanded && (
             <div className="mt-2 text-xs text-muted-foreground leading-relaxed">
               {insight.detail}
+              {/* Matched/Missing keyword badges for JD match */}
+              {insight.badgesMatched && insight.badgesMatched.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {insight.badgesMatched.map((b) => (
+                    <Badge key={b} className="text-[10px] px-2 py-0.5 font-normal score-badge-green border">
+                      {b}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {insight.badgesMissing && insight.badgesMissing.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {insight.badgesMissing.map((b) => (
+                    <Badge key={b} className="text-[10px] px-2 py-0.5 font-normal score-badge-red border">
+                      {b}
+                    </Badge>
+                  ))}
+                </div>
+              )}
               {insight.badges && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {insight.badges.map((b) => (
