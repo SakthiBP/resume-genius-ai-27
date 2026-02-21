@@ -5,10 +5,11 @@ interface OverallScoreBadgeProps {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 75) return { bg: "rgba(34,197,94,0.15)", border: "rgba(34,197,94,0.4)", text: "#4ade80", stroke: "#22c55e" };
-  if (score >= 50) return { bg: "rgba(234,179,8,0.15)", border: "rgba(234,179,8,0.4)", text: "#facc15", stroke: "#eab308" };
-  if (score >= 25) return { bg: "rgba(249,115,22,0.12)", border: "rgba(249,115,22,0.4)", text: "#fb923c", stroke: "#f97316" };
-  return { bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.4)", text: "#f87171", stroke: "#ef4444" };
+  // Using HSL values from CSS vars: --score-green, --score-yellow, --score-red
+  if (score >= 75) return { bg: "hsla(142,71%,45%,0.15)", border: "hsla(142,71%,45%,0.4)", text: "hsl(142,71%,55%)", stroke: "hsl(142,71%,45%)" };
+  if (score >= 50) return { bg: "hsla(38,92%,50%,0.15)", border: "hsla(38,92%,50%,0.4)", text: "hsl(38,92%,60%)", stroke: "hsl(38,92%,50%)" };
+  if (score >= 25) return { bg: "hsla(38,92%,50%,0.12)", border: "hsla(38,92%,50%,0.4)", text: "hsl(38,92%,60%)", stroke: "hsl(38,92%,50%)" };
+  return { bg: "hsla(0,84%,60%,0.15)", border: "hsla(0,84%,60%,0.4)", text: "hsl(0,84%,65%)", stroke: "hsl(0,84%,60%)" };
 }
 
 const OverallScoreBadge = ({ score }: OverallScoreBadgeProps) => {
@@ -38,7 +39,7 @@ const OverallScoreBadge = ({ score }: OverallScoreBadgeProps) => {
 
   return (
     <div
-      className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors duration-500"
+      className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors duration-300"
       style={{ backgroundColor: colors.bg, borderWidth: 1, borderStyle: "solid", borderColor: colors.border }}
     >
       <svg width="28" height="28" viewBox="0 0 28 28" className="-ml-0.5">
@@ -48,10 +49,10 @@ const OverallScoreBadge = ({ score }: OverallScoreBadgeProps) => {
           stroke={colors.stroke} strokeWidth="2.5" strokeLinecap="round"
           strokeDasharray={circumference} strokeDashoffset={dashOffset}
           transform="rotate(-90 14 14)"
-          className="transition-all duration-500"
+          className="transition-all duration-300"
         />
       </svg>
-      <span className="text-lg tabular-nums transition-colors duration-500" style={{ color: colors.text }}>{displayScore}</span>
+      <span className="text-lg tabular-nums transition-colors duration-300" style={{ color: colors.text }}>{displayScore}</span>
       <span className="opacity-70 font-medium text-foreground">Overall score</span>
     </div>
   );

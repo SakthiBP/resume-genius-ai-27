@@ -137,7 +137,7 @@ const DocumentPanel = ({
 
       {/* Document Content */}
       <div className="flex-1 overflow-y-auto p-8 md:p-12">
-        <div className="max-w-2xl mx-auto bg-card rounded-lg border border-border p-10 md:p-14">
+        <div className="max-w-2xl mx-auto bg-card border border-border p-10 md:p-14">
           {isExtracting ? (
             <div className="space-y-3">
               <Skeleton className="h-4 w-3/4" />

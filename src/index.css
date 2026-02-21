@@ -185,6 +185,14 @@
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(var(--foreground)), hsl(var(--muted-foreground)));
   }
+
+  /* Unified status/score colour utilities */
+  .score-badge-green { @apply bg-score-green/15 text-score-green border-score-green/30; }
+  .score-badge-yellow { @apply bg-score-yellow/15 text-score-yellow border-score-yellow/30; }
+  .score-badge-red { @apply bg-score-red/15 text-score-red border-score-red/30; }
+  .score-badge-blue { @apply bg-score-blue/15 text-score-blue border-score-blue/30; }
+  .score-badge-purple { @apply bg-score-purple/15 text-score-purple border-score-purple/30; }
+  .score-badge-muted { @apply bg-muted text-muted-foreground; }
 }
 
 @keyframes countUp {

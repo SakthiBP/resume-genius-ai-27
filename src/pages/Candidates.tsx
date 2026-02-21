@@ -28,18 +28,18 @@ interface Candidate {
 }
 
 const STATUS_OPTIONS = [
-  { value: "pending", label: "Pending", color: "bg-muted text-muted-foreground" },
-  { value: "deny", label: "Deny", color: "bg-destructive/15 text-destructive" },
-  { value: "online_assessment", label: "Online Assessment", color: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400" },
-  { value: "interview", label: "Interview", color: "bg-blue-500/15 text-blue-600 dark:text-blue-400" },
-  { value: "hire", label: "Hire", color: "bg-green-500/15 text-green-600 dark:text-green-400" },
+  { value: "pending", label: "Pending", color: "score-badge-muted" },
+  { value: "deny", label: "Deny", color: "score-badge-red" },
+  { value: "online_assessment", label: "Online Assessment", color: "score-badge-yellow" },
+  { value: "interview", label: "Interview", color: "score-badge-blue" },
+  { value: "hire", label: "Hire", color: "score-badge-green" },
 ];
 
 function getScoreBadgeClasses(score: number) {
-  if (score >= 75) return "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30";
-  if (score >= 50) return "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30";
-  if (score >= 25) return "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30";
-  return "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30";
+  if (score >= 75) return "score-badge-green";
+  if (score >= 50) return "score-badge-yellow";
+  if (score >= 25) return "score-badge-red";
+  return "score-badge-red";
 }
 
 const REC_LABELS: Record<string, string> = {
@@ -107,7 +107,7 @@ const Candidates = () => {
       <Navbar score={null} />
 
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto px-6 py-8">
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <Users className="h-6 w-6 text-muted-foreground" />
@@ -166,7 +166,7 @@ const Candidates = () => {
                   <div
                     key={c.id}
                     onClick={() => navigate(`/candidates/${c.id}`)}
-                    className="flex items-center gap-4 p-4 rounded-lg border border-border bg-card hover:bg-accent/40 transition-colors duration-200 cursor-pointer"
+                    className="flex items-center gap-4 p-4 border border-border bg-card hover:bg-accent/40 transition-colors duration-200 cursor-pointer"
                   >
                     {/* Name & email */}
                     <div className="flex-1 min-w-0">

@@ -28,19 +28,19 @@ const Navbar = ({ score }: NavbarProps) => {
 
       <div className="min-w-[200px] flex items-center justify-end gap-2">
         <Link to="/candidates">
-          <Button variant={location.pathname === "/candidates" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-none">
+          <Button variant={location.pathname === "/candidates" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <Users className="h-3.5 w-3.5" />
             Candidates
           </Button>
         </Link>
         <Link to="/roles">
-          <Button variant={location.pathname === "/roles" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-none">
+          <Button variant={location.pathname === "/roles" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <Briefcase className="h-3.5 w-3.5" />
             Roles
           </Button>
         </Link>
         <Link to="/">
-          <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs transition-none">
+          <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs transition-colors duration-200">
             Analyser
           </Button>
         </Link>
