@@ -1,4 +1,4 @@
-import { Moon, Sun, Users, Briefcase, TrendingUp, FileText, PackageCheck, Compass } from "lucide-react";
+import { Moon, Sun, Users, Briefcase, TrendingUp, FileText, PackageCheck, Compass, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import OverallScoreBadge from "./OverallScoreBadge";
@@ -55,6 +55,12 @@ const Navbar = ({ score = null }: NavbarProps) => {
           <Button variant={location.pathname === "/candidate-recommendations" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <Compass className="h-3.5 w-3.5" />
             Discover
+          </Button>
+        </Link>
+        <Link to="/data-sources">
+          <Button variant={location.pathname === "/data-sources" || location.pathname.startsWith("/external-profiles") ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
+            <Database className="h-3.5 w-3.5" />
+            Data Sources
           </Button>
         </Link>
         <Link to="/roles">

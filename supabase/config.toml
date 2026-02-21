@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.enrich-linkedin-profile]
 verify_jwt = false
+
+[functions.import-profile]
+verify_jwt = false
