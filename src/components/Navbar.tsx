@@ -42,7 +42,7 @@ const Navbar = ({ score }: NavbarProps) => {
         <Link to="/roi">
           <Button variant={location.pathname === "/roi" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <TrendingUp className="h-3.5 w-3.5" />
-            ROI
+            Proof of Value
           </Button>
         </Link>
         <Link to="/">
