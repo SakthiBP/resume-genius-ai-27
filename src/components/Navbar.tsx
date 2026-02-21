@@ -46,6 +46,12 @@ const Navbar = ({ score = null }: NavbarProps) => {
       </div>
 
       <div className="min-w-[200px] flex items-center justify-end gap-2">
+        <Link to="/analyze">
+          <Button variant={location.pathname === "/analyze" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
+            <FileText className="h-3.5 w-3.5" />
+            Analyser
+          </Button>
+        </Link>
         <Link to="/candidates">
           <Button variant={location.pathname === "/candidates" || location.pathname.startsWith("/candidates/") ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <Users className="h-3.5 w-3.5" />
@@ -62,12 +68,6 @@ const Navbar = ({ score = null }: NavbarProps) => {
           <Button variant={location.pathname === "/roi" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <TrendingUp className="h-3.5 w-3.5" />
             Proof of Value
-          </Button>
-        </Link>
-        <Link to="/analyze">
-          <Button variant={location.pathname === "/analyze" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
-            <FileText className="h-3.5 w-3.5" />
-            Analyser
           </Button>
         </Link>
         <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8">
