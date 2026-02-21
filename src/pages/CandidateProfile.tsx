@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import EmailPreviewModal from "@/components/EmailPreviewModal";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import { getEmailTemplate } from "@/lib/emailTemplates";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -273,10 +276,124 @@ const CandidateProfile = () => {
     fetchRoles();
   }, []);
 
-  const updateStatus = async (newStatus: string) => {
+  // ── Status change + email preview flow ──
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [previousStatus, setPreviousStatus] = useState<string | null>(null);
+  const [emailTemplate, setEmailTemplate] = useState<{ subject: string; body: string }>({ subject: "", body: "" });
+
+  const RECRUITER_NAME = "Recruitment Team"; // Fallback; actual name comes from edge function secret
+  const RECRUITER_EMAIL = ""; // Comes from edge function secret
+
+  const initiateStatusChange = (newStatus: string) => {
     if (!candidate) return;
-    setCandidate((prev) => prev ? { ...prev, status: newStatus } : prev);
-    await supabase.from("candidates").update({ status: newStatus }).eq("id", candidate.id);
+    setPendingStatus(newStatus);
+    setPreviousStatus(candidate.status);
+
+    // deny/hire require confirmation modal first
+    if (newStatus === "deny" || newStatus === "hire") {
+      setShowConfirmation(true);
+    } else {
+      // online_assessment / interview → go straight to email preview
+      proceedToEmailPreview(newStatus);
+    }
+  };
+
+  const proceedToEmailPreview = async (status: string) => {
+    if (!candidate) return;
+    setShowConfirmation(false);
+
+    // Update status in DB immediately
+    await supabase.from("candidates").update({ status }).eq("id", candidate.id);
+    setCandidate((prev) => prev ? { ...prev, status } : prev);
+
+    // Generate email template
+    const roleTitle = candidate.job_description ? candidate.job_description.split("\n")[0].replace("Job Title: ", "") : undefined;
+    const template = getEmailTemplate(status, {
+      candidate_name: candidate.candidate_name,
+      recruiter_name: RECRUITER_NAME,
+      role_title: roleTitle,
+    });
+    setEmailTemplate(template);
+    setShowEmailPreview(true);
+  };
+
+  const handleConfirmationApproved = () => {
+    if (pendingStatus) {
+      proceedToEmailPreview(pendingStatus);
+    }
+  };
+
+  const handleConfirmationCancelled = () => {
+    setShowConfirmation(false);
+    setPendingStatus(null);
+    setPreviousStatus(null);
+  };
+
+  const handleEmailSend = async (
+    subject: string,
+    body: string,
+    editedBeforeSend: boolean,
+    editSummary: string | null
+  ) => {
+    if (!candidate || !pendingStatus) return;
+
+    const { data, error } = await supabase.functions.invoke("send-email", {
+      body: {
+        candidate_id: candidate.id,
+        candidate_email: candidate.email,
+        subject,
+        email_body: body,
+        status_attempted: pendingStatus,
+        previous_status: previousStatus,
+        edited_before_send: editedBeforeSend,
+        edit_summary: editSummary,
+        action: "send",
+      },
+    });
+
+    if (error || data?.error) {
+      toast({ variant: "destructive", title: "Email failed", description: data?.error || error?.message || "Could not send email." });
+    } else {
+      toast({ title: "Email sent", description: `Email sent to ${candidate.email}` });
+    }
+
+    setShowEmailPreview(false);
+    setPendingStatus(null);
+    setPreviousStatus(null);
+  };
+
+  const handleEmailCancel = async () => {
+    if (!candidate || !pendingStatus) return;
+
+    // Call cancel action to revert status & log
+    await supabase.functions.invoke("send-email", {
+      body: {
+        candidate_id: candidate.id,
+        candidate_email: candidate.email,
+        subject: emailTemplate.subject,
+        email_body: emailTemplate.body,
+        status_attempted: pendingStatus,
+        previous_status: previousStatus,
+        action: "cancel",
+      },
+    });
+
+    // Revert local state
+    if (previousStatus) {
+      setCandidate((prev) => prev ? { ...prev, status: previousStatus } : prev);
+    }
+
+    setShowEmailPreview(false);
+    setPendingStatus(null);
+    setPreviousStatus(null);
+    toast({ title: "Cancelled", description: "Status reverted. No email sent." });
+  };
+
+  // Keep old updateStatus for non-email cases (unused now but kept for safety)
+  const updateStatus = async (newStatus: string) => {
+    initiateStatusChange(newStatus);
   };
 
   useEffect(() => {
@@ -799,6 +916,35 @@ const CandidateProfile = () => {
           </div>{/* close reanalysing wrapper */}
         </div>
       </div>
+
+      {/* Confirmation Modal for deny/hire */}
+      <ConfirmationModal
+        open={showConfirmation}
+        title={pendingStatus === "deny" ? "Deny Candidate" : "Hire Candidate"}
+        description={
+          pendingStatus === "deny"
+            ? `Are you sure you want to deny ${candidate?.candidate_name ?? "this candidate"}? A rejection email will be prepared for your review.`
+            : `Are you sure you want to hire ${candidate?.candidate_name ?? "this candidate"}? An offer email will be prepared for your review.`
+        }
+        confirmLabel={pendingStatus === "deny" ? "Yes, Deny" : "Yes, Hire"}
+        confirmVariant={pendingStatus === "deny" ? "destructive" : "default"}
+        onConfirm={handleConfirmationApproved}
+        onCancel={handleConfirmationCancelled}
+      />
+
+      {/* Email Preview Modal */}
+      {candidate && (
+        <EmailPreviewModal
+          open={showEmailPreview}
+          candidateEmail={candidate.email || "No email on file"}
+          recruiterName={RECRUITER_NAME}
+          recruiterEmail={RECRUITER_EMAIL || "via configured Gmail"}
+          templateSubject={emailTemplate.subject}
+          templateBody={emailTemplate.body}
+          onSend={handleEmailSend}
+          onCancel={handleEmailCancel}
+        />
+      )}
     </div>
   );
 };
