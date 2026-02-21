@@ -1,5 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import pdfParse from "npm:pdf-parse@1.1.1";
+import mammoth from "npm:mammoth@1.8.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,64 +67,26 @@ Scoring: 50=average, 70=good, 85+=exceptional.
 Deduct for vagueness and unquantified claims.
 Reward specific metrics and clear impact statements.`;
 
-async function extractTextFromPdf(data: Uint8Array): Promise<string> {
-  // Simple text extraction from PDF - look for text between stream markers
-  const text = new TextDecoder("latin1").decode(data);
-  
-  // Extract text objects from PDF content streams
-  const textParts: string[] = [];
-  
-  // Match text between BT and ET operators
-  const btEtRegex = /BT\s([\s\S]*?)ET/g;
-  let match;
-  while ((match = btEtRegex.exec(text)) !== null) {
-    const block = match[1];
-    // Match text in Tj and TJ operators
-    const tjRegex = /\(([^)]*)\)\s*Tj/g;
-    let tjMatch;
-    while ((tjMatch = tjRegex.exec(block)) !== null) {
-      textParts.push(tjMatch[1]);
-    }
-    // Match text in TJ arrays
-    const tjArrayRegex = /\[(.*?)\]\s*TJ/g;
-    let tjArrMatch;
-    while ((tjArrMatch = tjArrayRegex.exec(block)) !== null) {
-      const innerRegex = /\(([^)]*)\)/g;
-      let innerMatch;
-      while ((innerMatch = innerRegex.exec(tjArrMatch[1])) !== null) {
-        textParts.push(innerMatch[1]);
-      }
-    }
-  }
-  
-  if (textParts.length > 0) {
-    return textParts.join(" ").replace(/\\n/g, "\n").replace(/\s+/g, " ").trim();
-  }
-  
-  // Fallback: extract any readable text sequences
-  const readable = text.match(/[\x20-\x7E]{4,}/g);
-  return readable ? readable.join(" ").substring(0, 10000) : "";
+function cleanText(raw: string): string {
+  return raw
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n /g, "\n")
+    .replace(/ \n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
-function extractTextFromDocx(data: Uint8Array): string {
-  // DOCX is a ZIP file containing XML. We'll look for the document.xml content.
-  const text = new TextDecoder("latin1").decode(data);
-  
-  // Try to find XML text content - look for <w:t> tags
-  const parts: string[] = [];
-  const regex = /<w:t[^>]*>([^<]*)<\/w:t>/g;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    parts.push(match[1]);
-  }
-  
-  if (parts.length > 0) {
-    return parts.join(" ").trim();
-  }
-  
-  // Fallback
-  const readable = text.match(/[\x20-\x7E]{4,}/g);
-  return readable ? readable.join(" ").substring(0, 10000) : "";
+async function extractTextFromPdf(data: Uint8Array): Promise<string> {
+  const buffer = Buffer.from(data);
+  const result = await pdfParse(buffer);
+  return cleanText(result.text);
+}
+
+async function extractTextFromDocx(data: Uint8Array): Promise<string> {
+  const buffer = Buffer.from(data);
+  const result = await mammoth.extractRawText({ buffer });
+  return cleanText(result.value);
 }
 
 serve(async (req) => {
@@ -155,7 +119,7 @@ serve(async (req) => {
     if (fileName.endsWith(".pdf")) {
       extractedText = await extractTextFromPdf(data);
     } else if (fileName.endsWith(".docx")) {
-      extractedText = extractTextFromDocx(data);
+      extractedText = await extractTextFromDocx(data);
     } else {
       return new Response(
         JSON.stringify({ error: "Unsupported file type. Please upload PDF or DOCX." }),
