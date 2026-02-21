@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Search, MapPin, Briefcase, Award, UserPlus, Link as LinkIcon, ArrowRight, AlertTriangle } from "lucide-react";
+import { Search, MapPin, Briefcase, Award, UserPlus, Plus, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,7 +83,13 @@ export default function CandidateRecommendations() {
   const [seniority, setSeniority] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [skillsFilter, setSkillsFilter] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [addFormOpen, setAddFormOpen] = useState(false);
+  const [formName, setFormName] = useState("");
+  const [formHeadline, setFormHeadline] = useState("");
+  const [formLocation, setFormLocation] = useState("");
+  const [formSkills, setFormSkills] = useState("");
+  const [formLinkedinUrl, setFormLinkedinUrl] = useState("");
+  const [formExperience, setFormExperience] = useState("");
 
   const [candidates, setCandidates] = useState<ScoredCandidate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -109,27 +116,45 @@ export default function CandidateRecommendations() {
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
-  const handleEnrichProfile = async () => {
-    if (!linkedinUrl.trim()) return;
+  const handleAddCandidate = async () => {
+    if (!formName.trim()) return;
     setEnriching(true);
     try {
+      const skills = formSkills.split(",").map((s) => s.trim()).filter(Boolean);
+      const experience = formExperience
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => {
+          const match = line.match(/^(.+?)\s+at\s+(.+?)(?:\s*\((.+?)\))?$/i);
+          if (match) return { title: match[1].trim(), company: match[2].trim(), duration: match[3]?.trim() || "", description: "" };
+          return { title: line.trim(), company: "", duration: "", description: "" };
+        });
+
       const { data, error } = await supabase.functions.invoke("enrich-linkedin-profile", {
-        body: { linkedin_url: linkedinUrl.trim() },
+        body: {
+          name: formName.trim(),
+          headline: formHeadline.trim() || null,
+          location: formLocation.trim() || null,
+          skills,
+          experience,
+          linkedin_url: formLinkedinUrl.trim() || null,
+        },
       });
 
       if (error) throw new Error(error.message);
-      if (!data?.success) throw new Error(data?.error || "Failed to enrich profile.");
+      if (!data?.success) throw new Error(data?.error || "Failed to add candidate.");
 
       toast({
-        title: data.already_exists ? "Profile already exists" : "Profile enriched",
+        title: data.already_exists ? "Candidate already exists" : "Candidate added",
         description: `${data.candidate.name} has been added to the candidate pool.`,
       });
 
-      setLinkedinUrl("");
-      // If we have a role selected, re-run search
+      setFormName(""); setFormHeadline(""); setFormLocation("");
+      setFormSkills(""); setFormLinkedinUrl(""); setFormExperience("");
+      setAddFormOpen(false);
       if (selectedRoleId) handleFindCandidates();
     } catch (err: any) {
-      toast({ title: "Enrichment failed", description: err.message, variant: "destructive" });
+      toast({ title: "Failed to add candidate", description: err.message, variant: "destructive" });
     } finally {
       setEnriching(false);
     }
@@ -237,7 +262,7 @@ export default function CandidateRecommendations() {
         <div>
           <h1 className="text-2xl font-bold font-sans tracking-tight">Candidate Recommendations</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Discover and import candidates by enriching LinkedIn profiles and matching them to your roles.
+            Add candidates to your pool and match them against your open roles.
           </p>
         </div>
 
@@ -245,30 +270,60 @@ export default function CandidateRecommendations() {
         <div className="border-2 border-border bg-secondary/50 p-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-score-yellow shrink-0 mt-0.5" />
           <div className="text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">Compliance Notice:</span> This feature uses publicly available profile data via authorised enrichment APIs. Ensure your usage complies with applicable data protection regulations (GDPR, etc.) and LinkedIn's Terms of Service.
+            <span className="font-semibold text-foreground">Data Compliance:</span> Ensure candidate data is collected with consent and in compliance with applicable data protection regulations (GDPR, etc.).
           </div>
         </div>
 
-        {/* Enrich Profile Section */}
-        <div className="border-2 border-border bg-card p-5 space-y-3 shadow-xs">
-          <h2 className="text-sm font-semibold flex items-center gap-2">
-            <LinkIcon className="h-4 w-4" />
-            Add LinkedIn Profile
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Paste a LinkedIn profile URL to enrich and add to the candidate pool.
-          </p>
-          <div className="flex gap-2">
-            <Input
-              placeholder="https://linkedin.com/in/username"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={handleEnrichProfile} disabled={enriching || !linkedinUrl.trim()}>
-              {enriching ? <WavesLoader size="sm" /> : <><ArrowRight className="h-4 w-4" /> Enrich</>}
-            </Button>
-          </div>
+        {/* Add Candidate Section */}
+        <div className="border-2 border-border bg-card shadow-xs">
+          <button
+            onClick={() => setAddFormOpen(!addFormOpen)}
+            className="w-full p-4 flex items-center justify-between text-sm font-semibold hover:bg-accent/50 transition-colors"
+          >
+            <span className="flex items-center gap-2"><Plus className="h-4 w-4" /> Add Candidate to Pool</span>
+            {addFormOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+          {addFormOpen && (
+            <div className="p-5 pt-0 space-y-3 border-t border-border">
+              <p className="text-xs text-muted-foreground pt-3">
+                Manually enter candidate details. Optionally include a LinkedIn profile URL for reference.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Full Name *</label>
+                  <Input placeholder="Jane Smith" value={formName} onChange={(e) => setFormName(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Headline</label>
+                  <Input placeholder="Senior Software Engineer" value={formHeadline} onChange={(e) => setFormHeadline(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Location</label>
+                  <Input placeholder="London, UK" value={formLocation} onChange={(e) => setFormLocation(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">LinkedIn URL (optional)</label>
+                  <Input placeholder="https://linkedin.com/in/username" value={formLinkedinUrl} onChange={(e) => setFormLinkedinUrl(e.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Skills (comma-separated)</label>
+                <Input placeholder="Python, React, AWS, Machine Learning" value={formSkills} onChange={(e) => setFormSkills(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Experience (one role per line: "Title at Company (Duration)")</label>
+                <Textarea
+                  placeholder={"Senior Engineer at Google (3 years)\nSoftware Developer at Startup (2 years)"}
+                  value={formExperience}
+                  onChange={(e) => setFormExperience(e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <Button onClick={handleAddCandidate} disabled={enriching || !formName.trim()} className="gap-2">
+                {enriching ? <WavesLoader size="sm" /> : <><Plus className="h-4 w-4" /> Add Candidate</>}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Filters Section */}
