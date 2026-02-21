@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Moon, Sun, Users, Briefcase, TrendingUp, FileText, Home as HomeIcon } from "lucide-react";
+import { Moon, Sun, Users, Briefcase, TrendingUp, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import OverallScoreBadge from "./OverallScoreBadge";
@@ -13,27 +12,15 @@ interface NavbarProps {
 const Navbar = ({ score = null }: NavbarProps) => {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
-  const [logoHovered, setLogoHovered] = useState(false);
 
   return (
     <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0">
       <div className="flex items-center gap-3 min-w-[200px]">
         <Link
           to="/"
-          className="flex items-center gap-3 no-underline"
-          onMouseEnter={() => setLogoHovered(true)}
-          onMouseLeave={() => setLogoHovered(false)}>
-
-          {logoHovered ?
-          <div
-            className="flex items-center justify-center rounded-full bg-primary text-primary-foreground transition-all duration-200"
-            style={{ width: 28, height: 28 }}>
-
-              <HomeIcon className="h-4 w-4" />
-            </div> :
-
-          <SwimLogo size={28} />
-          }
+          className="group flex items-center gap-3 no-underline"
+        >
+          <SwimLogo size={28} className="group-hover:animate-wave-motion motion-reduce:group-hover:animate-none" />
           <div className="flex flex-col leading-tight">
             <span className="font-semibold text-foreground text-lg leading-none">SWIMR</span>
             <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
@@ -74,8 +61,8 @@ const Navbar = ({ score = null }: NavbarProps) => {
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </div>
-    </header>);
-
+    </header>
+  );
 };
 
 export default Navbar;

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { FileText, RefreshCw, Loader2, ChevronDown, X } from "lucide-react";
+import { FileText, RefreshCw, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import FileUploadZone from "./FileUploadZone";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface SelectedRole {
   id: string;
@@ -46,6 +46,7 @@ const DocumentPanel = ({
   onSelectedRoleChange,
 }: DocumentPanelProps) => {
   const [roles, setRoles] = useState<SelectedRole[]>([]);
+  const [roleError, setRoleError] = useState(false);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -63,6 +64,24 @@ const DocumentPanel = ({
     fetchRoles();
   }, []);
 
+  // Clear role error when a role is selected
+  useEffect(() => {
+    if (selectedRole) setRoleError(false);
+  }, [selectedRole]);
+
+  const handleAnalyze = () => {
+    if (!selectedRole) {
+      setRoleError(true);
+      toast({
+        variant: "destructive",
+        title: "Job role required",
+        description: "Please select a job role before analysing.",
+      });
+      return;
+    }
+    onAnalyze();
+  };
+
   const wordCount = extractedText ? extractedText.split(/\s+/).filter(Boolean).length : 0;
 
   if (!file) {
@@ -71,7 +90,6 @@ const DocumentPanel = ({
         <div className="w-full max-w-lg">
           <FileUploadZone file={null} onFileChange={onFileChange} />
         </div>
-
       </div>
     );
   }
@@ -85,35 +103,44 @@ const DocumentPanel = ({
           <span className="font-medium text-foreground">{file.name}</span>
         </div>
         <div className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              {selectedRole ? (
-                <button className="h-8 px-3 text-xs font-medium border border-border bg-secondary text-secondary-foreground flex items-center gap-1.5 hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer max-w-[200px]">
-                  <span className="truncate">{selectedRole.job_title}</span>
-                  <ChevronDown className="h-3 w-3 shrink-0" />
-                </button>
-              ) : (
-                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
-                  Select Role
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-              )}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onSelectedRoleChange(null)}>
-                <span className="text-muted-foreground">No role (general evaluation)</span>
-              </DropdownMenuItem>
-              {roles.map((role) => (
-                <DropdownMenuItem key={role.id} onClick={() => onSelectedRoleChange(role)}>
-                  {role.job_title}
+          <div className="flex flex-col items-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                {selectedRole ? (
+                  <button className="h-8 px-3 text-xs font-medium border border-border bg-secondary text-secondary-foreground flex items-center gap-1.5 hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer max-w-[200px]">
+                    <span className="truncate">{selectedRole.job_title}</span>
+                    <ChevronDown className="h-3 w-3 shrink-0" />
+                  </button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`gap-1.5 text-xs h-8 ${roleError ? "border-red-500 text-red-500" : ""}`}
+                  >
+                    Select Role
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="z-50 bg-popover">
+                <DropdownMenuItem onClick={() => onSelectedRoleChange(null)}>
+                  <span className="text-muted-foreground">No role (general evaluation)</span>
                 </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {roles.map((role) => (
+                  <DropdownMenuItem key={role.id} onClick={() => onSelectedRoleChange(role)}>
+                    {role.job_title}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {roleError && (
+              <span className="text-[10px] text-red-500 mt-1">Please select a job role before analysing.</span>
+            )}
+          </div>
           <Button
             size="sm"
-            onClick={onAnalyze}
-            disabled={isAnalyzing || isExtracting || !extractedText}
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || isExtracting || !extractedText || !selectedRole}
             className="gap-2"
           >
             {isAnalyzing ? (
