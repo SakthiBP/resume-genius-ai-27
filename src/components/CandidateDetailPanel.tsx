@@ -38,7 +38,7 @@ const CandidateDetailPanel = ({ candidate, onClose }: CandidateDetailPanelProps)
               />
               <div className="border-t border-border px-6 py-4">
                 <h4 className="text-sm font-semibold text-foreground mb-2">Original CV Text</h4>
-                <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono bg-muted/50 rounded-lg p-4 max-h-80 overflow-y-auto">
+                <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono bg-muted/50 p-4 max-h-80 overflow-y-auto">
                   {candidate.cv_text}
                 </pre>
               </div>

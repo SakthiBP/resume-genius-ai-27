@@ -59,9 +59,9 @@ const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
       className={cn(
-        "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-all duration-300 cursor-pointer group",
+        "relative flex flex-col items-center justify-center border-2 border-dashed p-10 transition-all duration-200 cursor-pointer group",
         isDragging
-          ? "border-foreground/60 bg-foreground/5 scale-[1.02]"
+          ? "border-foreground/60 bg-foreground/5 scale-[1.01]"
           : "border-border hover:border-foreground/40 hover:bg-accent/40"
       )}
       onClick={() => document.getElementById("file-input")?.click()}

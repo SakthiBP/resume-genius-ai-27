@@ -28,9 +28,9 @@ const typeConfig: Record<InsightType, { icon: typeof AlertTriangle; label: strin
 };
 
 const severityColors: Record<string, string> = {
-  low: "bg-score-yellow/15 text-score-yellow border-score-yellow/30",
-  medium: "bg-score-yellow/20 text-score-yellow border-score-yellow/40",
-  high: "bg-score-red/15 text-score-red border-score-red/30",
+  low: "score-badge-yellow",
+  medium: "score-badge-yellow",
+  high: "score-badge-red",
 };
 
 const InsightCard = ({ insight, index }: InsightCardProps) => {
@@ -40,7 +40,7 @@ const InsightCard = ({ insight, index }: InsightCardProps) => {
 
   return (
     <div
-      className="animate-fade-in-up border border-border rounded-lg bg-card hover:shadow-sm transition-shadow cursor-pointer"
+      className="animate-fade-in-up border border-border bg-card hover:bg-accent/40 transition-colors duration-200 cursor-pointer"
       style={{ animationDelay: `${index * 80}ms` }}
       onClick={() => setExpanded(!expanded)}
     >

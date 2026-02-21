@@ -205,8 +205,8 @@ const Roles = () => {
     <div className="h-screen flex flex-col bg-background transition-colors duration-300">
       <Navbar score={null} />
 
-      <div className="flex-1 overflow-y-auto p-6 md:p-10">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-5xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-foreground">Job Roles</h1>
@@ -233,7 +233,7 @@ const Roles = () => {
               {roles.map((role) => (
                 <Card
                   key={role.id}
-                  className="cursor-pointer hover:bg-accent/50 transition-colors"
+                  className="cursor-pointer hover:bg-accent/40 transition-colors duration-200"
                   onClick={() => openEditor(role)}
                 >
                   <CardContent className="py-4 px-5 flex items-center justify-between">
