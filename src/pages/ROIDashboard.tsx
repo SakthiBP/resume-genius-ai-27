@@ -93,7 +93,7 @@ function getManualMins(aj: any) {
   return aj?.agent_metrics?.estimated_manual_review_minutes ?? 20;
 }
 
-const HUMAN_HOURLY_RATE = 8.30; // £/hr for manual screening (≈$10.50 × 0.79)
+const HUMAN_HOURLY_RATE = 7.79; // £/hr for manual screening (≈$10.50 × 0.742)
 
 function fmtGBP(v: number, d = 2) {
   return `£${v.toFixed(d)}`;
@@ -241,7 +241,7 @@ const ROIDashboard = () => {
             </h1>
           </div>
           <p className="text-sm text-muted-foreground mb-8 animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
-            Real-time proof of value — every token, every dollar, every second tracked from live agent transactions.
+            Real-time proof of value — every token, every pound, every second tracked from live agent transactions.
           </p>
 
           {/* ── Hero Metric Cards ─────────────────────── */}
@@ -316,7 +316,7 @@ const ROIDashboard = () => {
                   <Users className="h-5 w-5 text-muted-foreground" />
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Human Review</span>
                   <span className="text-2xl font-bold text-foreground font-mono">~20 min</span>
-                  <span className="text-lg font-semibold text-foreground font-mono">£2.77</span>
+                  <span className="text-lg font-semibold text-foreground font-mono">£2.60</span>
                   <span className="text-[10px] text-muted-foreground">@ £{HUMAN_HOURLY_RATE}/hr</span>
                 </CardContent>
               </Card>
@@ -326,7 +326,7 @@ const ROIDashboard = () => {
                     {metrics.costReduction.toFixed(1)}% Reduction
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="font-mono">£2.77</span>
+                    <span className="font-mono">£2.60</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                     <span className="font-mono text-score-green">{fmtGBP(metrics.avgCostPerCV, 4)}</span>
                   </div>
@@ -510,7 +510,7 @@ const ROIDashboard = () => {
           {/* ── Bottom Summary ────────────────────────── */}
           <div className="animate-fade-in-up text-center pb-12" style={{ animationDelay: "0.45s" }}>
             <p className="text-xs text-muted-foreground">
-              All figures derived from live agent transaction data. Token costs calculated using actual API pricing converted to GBP (×0.79). Human benchmark: £{HUMAN_HOURLY_RATE}/hr × estimated review minutes per CV.
+              All figures derived from live agent transaction data. Token costs calculated using actual API pricing converted to GBP (×0.742). Human benchmark: £{HUMAN_HOURLY_RATE}/hr × estimated review minutes per CV.
             </p>
           </div>
         </div>
