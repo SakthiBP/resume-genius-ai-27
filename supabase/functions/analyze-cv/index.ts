@@ -1,8 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getDocument } from "https://esm.sh/pdfjs-serverless@0.6.0";
-import mammoth from "npm:mammoth@1.8.0";
 import { Buffer } from "node:buffer";
+import mammoth from "npm:mammoth@1.8.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,14 +78,55 @@ function cleanText(raw: string): string {
 }
 
 async function extractTextFromPdf(data: Uint8Array): Promise<string> {
-  const doc = await getDocument(data).promise;
-  const parts: string[] = [];
-  for (let i = 1; i <= doc.numPages; i++) {
-    const page = await doc.getPage(i);
-    const content = await page.getTextContent();
-    parts.push(content.items.map((item: any) => item.str).join(" "));
+  // Decode PDF bytes as latin1 to access raw PDF operators
+  const raw = new TextDecoder("latin1").decode(data);
+  const textParts: string[] = [];
+
+  // Extract text from PDF content streams between BT/ET blocks
+  const btEtRegex = /BT\s([\s\S]*?)ET/g;
+  let match;
+  while ((match = btEtRegex.exec(raw)) !== null) {
+    const block = match[1];
+    // Tj operator
+    const tjRegex = /\(([^)]*)\)\s*Tj/g;
+    let tj;
+    while ((tj = tjRegex.exec(block)) !== null) {
+      textParts.push(tj[1]);
+    }
+    // TJ array operator
+    const tjArrRegex = /\[(.*?)\]\s*TJ/g;
+    let tjArr;
+    while ((tjArr = tjArrRegex.exec(raw.substring(match.index, match.index + match[0].length))) !== null) {
+      const innerRegex = /\(([^)]*)\)/g;
+      let inner;
+      while ((inner = innerRegex.exec(tjArr[1])) !== null) {
+        textParts.push(inner[1]);
+      }
+    }
   }
-  return cleanText(parts.join("\n"));
+
+  // If we got structured text, use it
+  if (textParts.length > 0) {
+    return cleanText(
+      textParts.join(" ")
+        .replace(/\\n/g, "\n")
+        .replace(/\\r/g, "")
+        .replace(/\\t/g, " ")
+    );
+  }
+
+  // Fallback: extract readable ASCII sequences (for simple text-based PDFs)
+  const readable = raw.match(/[\x20-\x7E]{6,}/g) || [];
+  // Filter out PDF internal commands
+  const filtered = readable.filter(s =>
+    !s.startsWith("/") &&
+    !s.startsWith("<<") &&
+    !s.includes("endobj") &&
+    !s.includes("stream") &&
+    !s.includes("xref") &&
+    !s.match(/^\d+ \d+ obj/)
+  );
+  return cleanText(filtered.join(" ").substring(0, 15000));
 }
 
 async function extractTextFromDocx(data: Uint8Array): Promise<string> {
