@@ -26,7 +26,7 @@ const Navbar = ({ score = null }: NavbarProps) => {
 
           {logoHovered ?
           <div
-            className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all duration-200"
+            className="flex items-center justify-center rounded-full bg-primary text-primary-foreground transition-all duration-200"
             style={{ width: 28, height: 28 }}>
 
               <HomeIcon className="h-4 w-4" />
