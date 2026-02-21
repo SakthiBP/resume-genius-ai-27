@@ -873,7 +873,7 @@ const CandidateProfile = () => {
             <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Agent Economics</h3>
             <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5"><Timer className="h-4 w-4" /> {r.agent_metrics.processing_time_seconds ?? "—"}s processing</span>
-              <span className="flex items-center gap-1.5"><DollarSign className="h-4 w-4" /> £{r.agent_metrics.cost_estimate_usd?.toFixed(4) ?? "0.0000"} cost</span>
+              <span className="flex items-center gap-1.5"><span className="text-sm font-medium">£</span> {r.agent_metrics.cost_estimate_usd?.toFixed(4) ?? "0.0000"} cost</span>
               <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> {r.agent_metrics.estimated_manual_review_minutes} min saved</span>
             </div>
           </section>
