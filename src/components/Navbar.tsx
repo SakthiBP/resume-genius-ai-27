@@ -1,4 +1,4 @@
-import { Moon, Sun, Users, Briefcase, TrendingUp, FileText } from "lucide-react";
+import { Moon, Sun, Users, Briefcase, TrendingUp, FileText, PackageCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import OverallScoreBadge from "./OverallScoreBadge";
@@ -45,7 +45,12 @@ const Navbar = ({ score = null }: NavbarProps) => {
             Candidates
           </Button>
         </Link>
-        {/* Batch is now integrated into the Analyser page */}
+        <Link to="/batch">
+          <Button variant={location.pathname === "/batch" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
+            <PackageCheck className="h-3.5 w-3.5" />
+            Batch
+          </Button>
+        </Link>
         <Link to="/roles">
           <Button variant={location.pathname === "/roles" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <Briefcase className="h-3.5 w-3.5" />
