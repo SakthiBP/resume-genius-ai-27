@@ -62,6 +62,19 @@ Return this exact JSON structure:
   }
 }
 
+IMPORTANT — Perspective:
+All suggestions, recommendations, and improvement notes MUST be
+written for the HR recruiter reviewing this candidate, NOT for
+the candidate themselves. Frame every suggestion as an action
+the recruiter should take or a risk they should be aware of.
+Examples:
+- Instead of "You should quantify your achievements" →
+  "Probe the candidate on specific metrics and measurable outcomes during interview"
+- Instead of "Consider adding more technical skills" →
+  "Candidate may lack depth in technical skills — verify through a technical assessment"
+- Instead of "Improve your CV formatting" →
+  "CV formatting is below standard which may indicate lack of attention to detail"
+
 Scoring: 50=average, 70=good, 85+=exceptional.
 Deduct for vagueness and unquantified claims.
 Reward specific metrics and clear impact statements.`;

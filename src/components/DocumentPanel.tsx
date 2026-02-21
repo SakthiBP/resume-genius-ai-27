@@ -1,14 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FileText, RefreshCw, Loader2, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -53,7 +45,6 @@ const DocumentPanel = ({
   selectedRole,
   onSelectedRoleChange,
 }: DocumentPanelProps) => {
-  const [jobModalOpen, setJobModalOpen] = useState(false);
   const [roles, setRoles] = useState<SelectedRole[]>([]);
 
   useEffect(() => {
@@ -81,22 +72,6 @@ const DocumentPanel = ({
           <FileUploadZone file={null} onFileChange={onFileChange} />
         </div>
 
-        <Dialog open={jobModalOpen} onOpenChange={setJobModalOpen}>
-          <DialogTrigger asChild>
-            <button className="mt-6 text-sm text-foreground hover:underline">Paste job description for role-specific screening</button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Job Description</DialogTitle></DialogHeader>
-            <Textarea
-              placeholder="Paste the job listing here so the analysis is tailored to this role…"
-              value={jobDescription}
-              onChange={(e) => onJobDescriptionChange(e.target.value)}
-              rows={8}
-              className="resize-none"
-            />
-            <Button onClick={() => setJobModalOpen(false)} className="w-full">Done</Button>
-          </DialogContent>
-        </Dialog>
       </div>
     );
   }
@@ -151,22 +126,6 @@ const DocumentPanel = ({
               "Analyse Resume"
             )}
           </Button>
-          <Dialog open={jobModalOpen} onOpenChange={setJobModalOpen}>
-            <DialogTrigger asChild>
-              <button className="text-xs text-foreground hover:underline">Job description</button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Job Description</DialogTitle></DialogHeader>
-              <Textarea
-                placeholder="Paste the job listing here so the analysis is tailored to this role…"
-                value={jobDescription}
-                onChange={(e) => onJobDescriptionChange(e.target.value)}
-                rows={8}
-                className="resize-none"
-              />
-              <Button onClick={() => setJobModalOpen(false)} className="w-full">Done</Button>
-            </DialogContent>
-          </Dialog>
           <button
             onClick={() => onFileChange(null)}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
