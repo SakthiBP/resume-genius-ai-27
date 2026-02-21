@@ -1025,6 +1025,15 @@ const CandidateProfile = () => {
                 <><RefreshCw className="h-4 w-4" /> Re-analyse</>
               )}
             </Button>
+            <Button
+              variant="destructive"
+              className="gap-2 ml-auto"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deleting}
+            >
+              {deleting ? <WavesLoader size="sm" className="text-white" /> : <Trash2 className="h-4 w-4" />}
+              Delete candidate
+            </Button>
           </div>
           </div>{/* close reanalysing wrapper */}
         </div>
@@ -1058,17 +1067,6 @@ const CandidateProfile = () => {
           onCancel={handleEmailCancel}
         />
       )}
-
-      {/* Sticky Delete Button */}
-      <Button
-        variant="destructive"
-        className="fixed bottom-6 right-6 z-50 gap-2 shadow-lg"
-        onClick={() => setShowDeleteConfirm(true)}
-        disabled={deleting}
-      >
-        {deleting ? <WavesLoader size="sm" className="text-white" /> : <Trash2 className="h-4 w-4" />}
-        Delete candidate
-      </Button>
 
       {/* Delete Confirmation Modal */}
       <ConfirmationModal
