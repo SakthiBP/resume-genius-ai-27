@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Moon, Sun, Users, Briefcase, TrendingUp, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
@@ -12,15 +13,18 @@ interface NavbarProps {
 const Navbar = ({ score = null }: NavbarProps) => {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
+  const [logoHovered, setLogoHovered] = useState(false);
 
   return (
     <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0">
       <div className="flex items-center gap-3 min-w-[200px]">
         <Link
           to="/"
-          className="group flex items-center gap-3 no-underline"
+          className="flex items-center gap-3 no-underline"
+          onMouseEnter={() => setLogoHovered(true)}
+          onMouseLeave={() => setLogoHovered(false)}
         >
-          <SwimLogo size={28} className="group-hover:animate-wave-motion motion-reduce:group-hover:animate-none" />
+          <SwimLogo size={28} animate={logoHovered} />
           <div className="flex flex-col leading-tight">
             <span className="font-semibold text-foreground text-lg leading-none">SWIMR</span>
             <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
