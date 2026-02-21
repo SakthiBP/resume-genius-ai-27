@@ -7,7 +7,7 @@ interface ScoreBarProps {
 }
 
 const getBarColor = (score: number) => {
-  if (score > 70) return "bg-score-green";
+  if (score >= 70) return "bg-score-green";
   if (score >= 40) return "bg-score-yellow";
   return "bg-score-red";
 };
@@ -44,7 +44,7 @@ const ScoreBar = ({ label, score, delay = 0 }: ScoreBarProps) => {
         <span className="text-xs font-medium text-foreground">{label}</span>
         <span className="text-xs font-semibold tabular-nums text-foreground">{displayScore}</span>
       </div>
-      <div className="h-1.5 bg-accent rounded-full overflow-hidden">
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-700 ease-out ${getBarColor(score)}`}
           style={{ width: `${width}%` }}

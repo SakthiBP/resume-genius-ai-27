@@ -11,7 +11,7 @@ interface NavbarProps {
 
 const Navbar = ({ score, isDark, onToggleTheme }: NavbarProps) => {
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center px-4 shrink-0">
+    <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0 transition-colors duration-300">
       <div className="flex items-center gap-3 min-w-[200px]">
         <SwimLogo size={28} />
         <div className="flex flex-col leading-tight">
