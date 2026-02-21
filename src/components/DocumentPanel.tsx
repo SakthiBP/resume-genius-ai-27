@@ -81,7 +81,7 @@ const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionCha
 
         <Dialog open={jobModalOpen} onOpenChange={setJobModalOpen}>
           <DialogTrigger asChild>
-            <button className="mt-6 text-sm text-primary hover:underline">Paste job description for role-specific screening</button>
+            <button className="mt-6 text-sm text-foreground hover:underline">Paste job description for role-specific screening</button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Job Description</DialogTitle></DialogHeader>
@@ -125,7 +125,7 @@ const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionCha
           </Button>
           <Dialog open={jobModalOpen} onOpenChange={setJobModalOpen}>
             <DialogTrigger asChild>
-              <button className="text-xs text-primary hover:underline">Job description</button>
+              <button className="text-xs text-foreground hover:underline">Job description</button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Job Description</DialogTitle></DialogHeader>

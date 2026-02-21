@@ -178,7 +178,7 @@ const AnalysisSidebar = ({ isLoading, hasResults, result }: AnalysisSidebarProps
         <div>
           <div className="flex items-center gap-2 mb-4">
             <h3 className="text-sm font-semibold text-foreground">Recruiter Insights</h3>
-            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-foreground text-background text-[10px] font-bold">
               {insights.length}
             </span>
           </div>
