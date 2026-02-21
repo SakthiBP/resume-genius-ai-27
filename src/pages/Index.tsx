@@ -4,10 +4,13 @@ import DocumentPanel from "@/components/DocumentPanel";
 import AnalysisSidebar from "@/components/AnalysisSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { extractTextFromFile } from "@/lib/extractText";
 import type { AnalysisResult } from "@/types/analysis";
 
 const Index = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [extractedText, setExtractedText] = useState<string>("");
+  const [isExtracting, setIsExtracting] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -17,19 +20,41 @@ const Index = () => {
     document.documentElement.classList.toggle("dark", isDark);
   }, [isDark]);
 
-  const analyzeResume = async (uploadedFile: File) => {
+  const handleFileChange = async (newFile: File | null) => {
+    setFile(newFile);
+    setAnalysisResult(null);
+    setExtractedText("");
+
+    if (newFile) {
+      setIsExtracting(true);
+      try {
+        const text = await extractTextFromFile(newFile);
+        setExtractedText(text);
+      } catch (err: any) {
+        console.error("Extraction error:", err);
+        toast({
+          variant: "destructive",
+          title: "Text extraction failed",
+          description: err.message || "Could not extract text from the file.",
+        });
+        setFile(null);
+      } finally {
+        setIsExtracting(false);
+      }
+    }
+  };
+
+  const analyzeResume = async () => {
+    if (!extractedText) return;
     setIsAnalyzing(true);
     setAnalysisResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", uploadedFile);
-      if (jobDescription.trim()) {
-        formData.append("jobDescription", jobDescription);
-      }
-
       const { data, error } = await supabase.functions.invoke("analyze-cv", {
-        body: formData,
+        body: {
+          text: extractedText,
+          jobDescription: jobDescription.trim() || undefined,
+        },
       });
 
       if (error) throw error;
@@ -48,13 +73,6 @@ const Index = () => {
     }
   };
 
-  const handleFileChange = (newFile: File | null) => {
-    setFile(newFile);
-    if (!newFile) {
-      setAnalysisResult(null);
-    }
-  };
-
   const overallScore = analysisResult?.overall_score?.composite_score ?? null;
 
   return (
@@ -65,6 +83,8 @@ const Index = () => {
         <div className="flex-[3] flex flex-col min-h-0 border-r border-border">
           <DocumentPanel
             file={file}
+            extractedText={extractedText}
+            isExtracting={isExtracting}
             onFileChange={handleFileChange}
             jobDescription={jobDescription}
             onJobDescriptionChange={setJobDescription}
