@@ -190,10 +190,10 @@ const RankingMode = ({ candidates, roles }: RankingModeProps) => {
                     {matchedSkills.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-1.5">
                         {matchedSkills.map((s) => (
-                          <Badge key={s} variant="outline" className="text-[10px] px-2 py-0 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30">
-                            <CheckCircle className="h-2.5 w-2.5 mr-1" />
-                            {s}
-                          </Badge>
+                          <Badge key={s} variant="outline" className="text-[10px] px-2 py-0 score-badge-green border">
+                             <CheckCircle className="h-2.5 w-2.5 mr-1" />
+                             {s}
+                           </Badge>
                         ))}
                       </div>
                     )}
@@ -202,10 +202,10 @@ const RankingMode = ({ candidates, roles }: RankingModeProps) => {
                     {missingSkills.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {missingSkills.map((s) => (
-                          <Badge key={s} variant="outline" className="text-[10px] px-2 py-0 bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30">
-                            <AlertTriangle className="h-2.5 w-2.5 mr-1" />
-                            {s}
-                          </Badge>
+                          <Badge key={s} variant="outline" className="text-[10px] px-2 py-0 score-badge-red border">
+                             <AlertTriangle className="h-2.5 w-2.5 mr-1" />
+                             {s}
+                           </Badge>
                         ))}
                       </div>
                     )}
@@ -321,9 +321,9 @@ const RankingMode = ({ candidates, roles }: RankingModeProps) => {
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {matchedSkills.map((s) => (
-                            <Badge key={s} variant="outline" className="text-[10px] px-2 py-0 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30">
-                              {s}
-                            </Badge>
+                             <Badge key={s} variant="outline" className="text-[10px] px-2 py-0 score-badge-green border">
+                               {s}
+                             </Badge>
                           ))}
                         </div>
                       </div>
@@ -337,9 +337,9 @@ const RankingMode = ({ candidates, roles }: RankingModeProps) => {
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {missingSkills.map((s) => (
-                            <Badge key={s} variant="outline" className="text-[10px] px-2 py-0 bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30">
-                              {s}
-                            </Badge>
+                             <Badge key={s} variant="outline" className="text-[10px] px-2 py-0 score-badge-red border">
+                               {s}
+                             </Badge>
                           ))}
                         </div>
                       </div>

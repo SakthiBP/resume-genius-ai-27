@@ -51,7 +51,7 @@ const InsightCard = ({ insight, index }: InsightCardProps) => {
       onClick={() => setExpanded(!expanded)}
     >
       <div className="flex items-start gap-3 p-4">
-        <div className={cn("mt-0.5 p-1.5 rounded-md", config.bgAccent)}>
+        <div className={cn("mt-0.5 p-1.5", config.bgAccent)}>
           <Icon className={cn("h-3.5 w-3.5", config.accent)} />
         </div>
         <div className="flex-1 min-w-0">
