@@ -108,7 +108,7 @@ serve(async (req) => {
       from: `${RECRUITER_NAME} <${GMAIL_USER}>`,
       to: candidate_email,
       subject: subject,
-      content: "auto",
+      content: email_body,
       html: `<div style="font-family: Arial, sans-serif; font-size: 14px; color: #222; line-height: 1.6;">${htmlBody}</div>`,
     });
 
