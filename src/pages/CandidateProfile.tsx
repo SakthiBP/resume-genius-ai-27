@@ -1,17 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Select removed — status is read-only on this page
 import {
   ArrowLeft,
   RefreshCw,
@@ -39,7 +33,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  
   ReferenceLine,
   PieChart,
   Pie,
@@ -132,6 +126,39 @@ function generateReport(r: AnalysisResult): string {
   report += `Overall, this candidate receives a composite score of ${r.overall_score.composite_score}/100, resulting in ${recMap[r.overall_score.recommendation] || "a recommendation to review further"}.`;
 
   return report;
+}
+
+function generateRoleFit(r: AnalysisResult): string {
+  const techSkills = r.skills_extraction.technical_skills.slice(0, 4).join(", ");
+  const softSkills = r.skills_extraction.soft_skills.slice(0, 2).join(" and ");
+  const years = r.experience_quality.total_years;
+  const progression = r.experience_quality.progression.replace("_", " ");
+
+  let fit = `Based on ${years}+ years of experience with a ${progression} career trajectory`;
+  if (techSkills) fit += ` and demonstrated proficiency in ${techSkills}`;
+  fit += `, this candidate would be well-suited for `;
+
+  const score = r.overall_score.composite_score;
+  if (score >= 75) {
+    fit += "a senior or lead-level position ";
+  } else if (score >= 50) {
+    fit += "a mid-level position ";
+  } else {
+    fit += "a junior or associate-level position ";
+  }
+
+  if (r.skills_extraction.technical_skills.length > r.skills_extraction.soft_skills.length * 2) {
+    fit += "in a technically-focused team where deep domain expertise is valued";
+  } else if (r.skills_extraction.soft_skills.length >= r.skills_extraction.technical_skills.length) {
+    fit += "in a collaborative, cross-functional environment where communication and stakeholder engagement are key";
+  } else {
+    fit += "that balances technical execution with team collaboration";
+  }
+
+  if (softSkills) fit += `. Their strengths in ${softSkills} would be particularly valuable`;
+  fit += ` in a fast-paced organisation that prioritises both delivery and professional growth.`;
+
+  return fit;
 }
 
 function formatDate(dateStr: string) {
@@ -324,22 +351,9 @@ const CandidateProfile = () => {
                 <Badge variant="outline" className={`text-xs font-semibold px-3 py-1 ${rec.color} pointer-events-none`}>
                   {rec.label}
                 </Badge>
-                <Select value={candidate.status} onValueChange={updateStatus}>
-                  <SelectTrigger className="w-[170px] h-8 text-xs border-none">
-                    <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
-                      {statusOpt.label}
-                    </Badge>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        <Badge className={`text-[10px] px-2 py-0.5 ${s.color} border-0 pointer-events-none`}>
-                          {s.label}
-                        </Badge>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
+                  {statusOpt.label}
+                </Badge>
               </div>
             </div>
           </div>
@@ -348,6 +362,12 @@ const CandidateProfile = () => {
           <section className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-sm font-semibold text-foreground mb-3">Screening Report Summary</h2>
             <p className="text-sm leading-relaxed text-foreground/80">{report}</p>
+          </section>
+
+          {/* === IDEAL ROLE FIT === */}
+          <section className="bg-card border border-border rounded-lg p-6">
+            <h2 className="text-sm font-semibold text-foreground mb-3">Ideal Role Fit</h2>
+            <p className="text-sm leading-relaxed text-foreground/80">{generateRoleFit(r)}</p>
           </section>
 
           {/* === DATA VISUALISATIONS === */}
@@ -360,7 +380,7 @@ const CandidateProfile = () => {
                   <PolarGrid stroke="hsl(0,0%,30%)" />
                   <PolarAngleAxis dataKey="dimension" tick={{ fill: "hsl(0,0%,55%)", fontSize: 11 }} />
                   <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar name="Score" dataKey="score" stroke={CHART_COLOURS.primary} fill={CHART_COLOURS.primary} fillOpacity={0.25} strokeWidth={2} />
+                  <Radar name="Score" dataKey="score" stroke={CHART_COLOURS.primary} fill={CHART_COLOURS.primary} fillOpacity={0.25} strokeWidth={2} isAnimationActive={false} />
                 </RadarChart>
               </ResponsiveContainer>
             </section>
@@ -373,9 +393,8 @@ const CandidateProfile = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(0,0%,20%)" />
                   <XAxis type="number" domain={[0, 100]} tick={{ fill: "hsl(0,0%,55%)", fontSize: 11 }} />
                   <YAxis type="category" dataKey="dimension" tick={{ fill: "hsl(0,0%,55%)", fontSize: 11 }} width={80} />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(0,0%,12%)", border: "1px solid hsl(0,0%,20%)", borderRadius: 8, color: "#fff", fontSize: 12 }} />
                   <ReferenceLine x={50} stroke={CHART_COLOURS.muted} strokeDasharray="4 4" label={{ value: "Avg", fill: CHART_COLOURS.muted, fontSize: 10 }} />
-                  <Bar dataKey="score" fill={CHART_COLOURS.primary} radius={[0, 4, 4, 0]} barSize={20} />
+                  <Bar dataKey="score" fill={CHART_COLOURS.primary} radius={[0, 4, 4, 0]} barSize={20} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </section>
@@ -392,7 +411,6 @@ const CandidateProfile = () => {
                       ))}
                     </Pie>
                     <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: "hsl(0,0%,55%)" }} />
-                    <Tooltip contentStyle={{ backgroundColor: "hsl(0,0%,12%)", border: "1px solid hsl(0,0%,20%)", borderRadius: 8, color: "#fff", fontSize: 12 }} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
@@ -412,7 +430,6 @@ const CandidateProfile = () => {
                       ))}
                     </Pie>
                     <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: "hsl(0,0%,55%)" }} />
-                    <Tooltip contentStyle={{ backgroundColor: "hsl(0,0%,12%)", border: "1px solid hsl(0,0%,20%)", borderRadius: 8, color: "#fff", fontSize: 12 }} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
