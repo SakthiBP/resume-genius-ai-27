@@ -52,8 +52,8 @@ const Index = () => {
     try {
       const { data, error } = await supabase.functions.invoke("analyze-cv", {
         body: {
-          text: extractedText,
-          jobDescription: jobDescription.trim() || undefined,
+          cv_text: extractedText,
+          job_description: jobDescription.trim() || null,
         },
       });
 
