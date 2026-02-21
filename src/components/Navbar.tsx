@@ -47,6 +47,11 @@ const Navbar = ({ score }: NavbarProps) => {
         </Link>
         <Link to="/">
           <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs transition-colors duration-200">
+            Home
+          </Button>
+        </Link>
+        <Link to="/analyze">
+          <Button variant={location.pathname === "/analyze" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs transition-colors duration-200">
             Analyser
           </Button>
         </Link>

@@ -606,7 +606,7 @@ const CandidateProfile = () => {
             <section className="bg-card border border-border p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Lightbulb className="h-4 w-4 text-score-yellow" />
-                IMPROVEMENT SUGGESTIONS
+                SUGGESTIONS
               </h3>
               <ul className="space-y-2">
                 {r.overall_score.improvement_suggestions.map((s, i) => (
