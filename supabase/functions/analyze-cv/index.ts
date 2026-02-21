@@ -1,7 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import pdfParse from "npm:pdf-parse@1.1.1";
+import { getDocument } from "https://esm.sh/pdfjs-serverless@0.6.0";
 import mammoth from "npm:mammoth@1.8.0";
+import { Buffer } from "node:buffer";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,9 +79,14 @@ function cleanText(raw: string): string {
 }
 
 async function extractTextFromPdf(data: Uint8Array): Promise<string> {
-  const buffer = Buffer.from(data);
-  const result = await pdfParse(buffer);
-  return cleanText(result.text);
+  const doc = await getDocument(data).promise;
+  const parts: string[] = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    parts.push(content.items.map((item: any) => item.str).join(" "));
+  }
+  return cleanText(parts.join("\n"));
 }
 
 async function extractTextFromDocx(data: Uint8Array): Promise<string> {
