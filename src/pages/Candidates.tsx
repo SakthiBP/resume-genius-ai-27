@@ -10,8 +10,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Users, ArrowUpDown } from "lucide-react";
+import { Search, Users, ArrowUpDown, X } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import type { AnalysisResult } from "@/types/analysis";
 
 interface Candidate {
