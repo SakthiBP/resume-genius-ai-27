@@ -145,7 +145,7 @@ const AnalysisSidebar = ({ isLoading, hasResults, result, hasRole }: AnalysisSid
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Category Score Bars */}
         <div>
-          <h3 className="text-sm font-semibold text-foreground mb-4">Candidate Evaluation</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Candidate Evaluation</h3>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             <ScoreBar label="Sentiment" score={result.sentiment_analysis.score} delay={100} />
             <ScoreBar label="Relevance" score={result.usefulness_score.relevance_to_role} delay={200} notApplicable={!hasRole} />
@@ -159,7 +159,7 @@ const AnalysisSidebar = ({ isLoading, hasResults, result, hasRole }: AnalysisSid
         {/* Insight Cards */}
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Recruiter Insights</h3>
+            <h3 className="text-sm font-semibold text-foreground uppercase">Recruiter Insights</h3>
             <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-foreground text-background text-[10px] font-bold">
               {insights.length}
             </span>

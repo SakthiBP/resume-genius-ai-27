@@ -327,7 +327,7 @@ const CandidateProfile = () => {
 
             {/* Info */}
             <div className="flex-1 min-w-0 space-y-3">
-              <h1 className="text-2xl font-bold text-foreground">{candidate.candidate_name}</h1>
+              <h1 className="text-2xl font-bold text-foreground uppercase">{candidate.candidate_name}</h1>
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 {candidate.email && (
                   <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" />{candidate.email}</span>
@@ -347,13 +347,13 @@ const CandidateProfile = () => {
 
           {/* === REPORT SUMMARY === */}
           <section className="bg-card border border-border p-6">
-            <h2 className="text-sm font-semibold text-foreground mb-3">Screening Report Summary</h2>
+            <h2 className="text-sm font-semibold text-foreground mb-3 uppercase">Screening Report Summary</h2>
             <p className="text-sm leading-relaxed text-foreground/80">{report}</p>
           </section>
 
           {/* === IDEAL ROLE FIT === */}
           <section className="bg-card border border-border p-6">
-            <h2 className="text-sm font-semibold text-foreground mb-3">Ideal Role Fit</h2>
+            <h2 className="text-sm font-semibold text-foreground mb-3 uppercase">Ideal Role Fit</h2>
             <p className="text-sm leading-relaxed text-foreground/80">{generateRoleFit(r)}</p>
           </section>
 
@@ -361,7 +361,7 @@ const CandidateProfile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Radar Chart */}
             <section className="bg-card border border-border p-6">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Candidate Profile Shape</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Candidate Profile Shape</h3>
               <ResponsiveContainer width="100%" height={260}>
                 <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
                   <PolarGrid stroke="hsl(0,0%,30%)" />
@@ -374,7 +374,7 @@ const CandidateProfile = () => {
 
             {/* Bar Chart vs Baseline */}
             <section className="bg-card border border-border p-6">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Scores vs Average Baseline</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Scores vs Average Baseline</h3>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={barData} layout="vertical" margin={{ left: 10, right: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(0,0%,20%)" />
@@ -388,7 +388,7 @@ const CandidateProfile = () => {
 
             {/* Skills Breakdown Pie */}
             <section className="bg-card border border-border p-6">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Skills Breakdown</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Skills Breakdown</h3>
               {skillsPieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
@@ -407,7 +407,7 @@ const CandidateProfile = () => {
 
             {/* Red Flags Severity */}
             <section className="bg-card border border-border p-6">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Red Flags by Severity</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Red Flags by Severity</h3>
               {flagPieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
@@ -429,7 +429,7 @@ const CandidateProfile = () => {
 
           {/* === CAREER PROGRESSION === */}
           <section className="bg-card border border-border p-6">
-            <h3 className="text-sm font-semibold text-foreground mb-3">Career Progression</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3 uppercase">Career Progression</h3>
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary" className="text-xs pointer-events-none">
                 {r.experience_quality.total_years}+ years
@@ -453,7 +453,7 @@ const CandidateProfile = () => {
 
           {/* === SKILLS === */}
           <section className="bg-card border border-border p-6">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Skills & Certifications</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Skills & Certifications</h3>
             <div className="space-y-4">
               {r.skills_extraction.technical_skills.length > 0 && (
                 <div>
@@ -495,7 +495,7 @@ const CandidateProfile = () => {
           <section className="bg-card border border-border p-6">
             <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-score-red" />
-              Red Flags ({r.red_flags.red_flag_count})
+              RED FLAGS ({r.red_flags.red_flag_count})
             </h3>
             {r.red_flags.red_flag_count === 0 ? (
               <p className="text-sm text-muted-foreground">No red flags detected.</p>
@@ -533,7 +533,7 @@ const CandidateProfile = () => {
             <section className="bg-card border border-border p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Lightbulb className="h-4 w-4 text-score-yellow" />
-                Improvement Suggestions
+                IMPROVEMENT SUGGESTIONS
               </h3>
               <ul className="space-y-2">
                 {r.overall_score.improvement_suggestions.map((s, i) => (
@@ -549,7 +549,7 @@ const CandidateProfile = () => {
 
           {/* === AGENT ECONOMICS === */}
           <section className="bg-card border border-border p-6">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Agent Economics</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Agent Economics</h3>
             <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5"><Timer className="h-4 w-4" /> {r.agent_metrics.processing_time_seconds ?? "—"}s processing</span>
               <span className="flex items-center gap-1.5"><DollarSign className="h-4 w-4" /> ${r.agent_metrics.cost_estimate_usd?.toFixed(4) ?? "0.0000"} cost</span>
