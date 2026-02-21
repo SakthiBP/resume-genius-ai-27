@@ -146,14 +146,13 @@ SECTION SCORING RULES:
 job_description_match: Score based on % of required keywords/criteria found. Award full points per keyword matched. Partial credit for adjacent/related terms.
 skills_assessment: Score based on required skills satisfied. Partial credit for transferable or related skills. Bonus points for exceeding requirements.
 education: Score based on THREE primary factors:
-  1. UNIVERSITY PRESTIGE (use QS World University Rankings as benchmark):
-     - QS Top 10 = exceptional (qs_ranking_tier: "top_10")
-     - QS Top 50 = high (qs_ranking_tier: "top_50")
-     - QS Top 100 = good (qs_ranking_tier: "top_100")
-     - QS Top 200 = above average (qs_ranking_tier: "top_200")
-     - QS Top 500 = average (qs_ranking_tier: "top_500")
-     - Unranked = low (qs_ranking_tier: "unranked")
-     Use your knowledge of current QS rankings to assess the institution.
+   1. UNIVERSITY PRESTIGE — assess using your broad knowledge of global university reputation across MULTIPLE ranking systems (QS, THE, ARWU/Shanghai, US News Global) and general industry perception. Do NOT rely on any single ranking list. Acknowledge that reputation varies by subject area — a university might be elite for engineering but mid-tier for business. Classify into tiers:
+     - Elite = globally top ~20 (e.g., Oxbridge, Ivy League, MIT, Stanford, ETH Zurich) (qs_ranking_tier: "top_10")
+     - Top Tier = globally top ~100 (qs_ranking_tier: "top_50" or "top_100")
+     - Strong = top ~250 (qs_ranking_tier: "top_200")
+     - Mid Tier = top ~500 (qs_ranking_tier: "top_500")
+     - Lower Tier = below top 500 or unranked (qs_ranking_tier: "unranked")
+     Consider the specific subject area relevance when assessing prestige — e.g., a university known for engineering excellence should rank higher when evaluating an engineering candidate.
   2. GRADE QUALITY — accept ALL grading systems worldwide and normalise:
      - UK: First Class Honours, Upper Second (2:1), Lower Second (2:2), Third Class
      - US: GPA on 4.0 scale
