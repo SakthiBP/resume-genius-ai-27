@@ -261,7 +261,8 @@ serve(async (req) => {
 
     const inputTokens = data.usage.input_tokens;
     const outputTokens = data.usage.output_tokens;
-    const cost = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
+    const costUSD = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
+    const cost = costUSD * 0.79;
 
     let jsonStr = data.content[0].text
       .replace(/```json\n?/g, '')
