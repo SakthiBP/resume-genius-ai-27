@@ -116,6 +116,11 @@ serve(async (req) => {
     const claudeData = await claudeResponse.json();
     let analysisText = claudeData.content?.[0]?.text || "";
 
+    // Calculate actual cost from Anthropic token usage
+    const inputTokens = claudeData.usage?.input_tokens ?? 0;
+    const outputTokens = claudeData.usage?.output_tokens ?? 0;
+    const costUsd = (inputTokens / 1_000_000) * 3 + (outputTokens / 1_000_000) * 15;
+
     // Strip markdown backticks if present
     analysisText = analysisText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
 
@@ -125,6 +130,7 @@ serve(async (req) => {
     analysis.agent_metrics = {
       ...analysis.agent_metrics,
       processing_time_seconds: parseFloat(processingTime),
+      cost_estimate_usd: parseFloat(costUsd.toFixed(4)),
     };
 
     return new Response(JSON.stringify(analysis), {
