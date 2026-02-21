@@ -76,18 +76,18 @@ serve(async (req) => {
       throw new Error("CLAUDE_API_KEY is not configured");
     }
 
-    const { text, jobDescription } = await req.json();
+    const { cv_text, job_description } = await req.json();
 
-    if (!text || text.length < 20) {
+    if (!cv_text || cv_text.length < 20) {
       return new Response(
         JSON.stringify({ error: "No resume text provided or text too short." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    let userMessage = `Analyze this CV/Resume:\n\n${text}`;
-    if (jobDescription) {
-      userMessage = `Evaluate this CV against this role: ${jobDescription}\n\nCV/Resume:\n\n${text}`;
+    let userMessage = `Analyze this CV/Resume:\n\n${cv_text}`;
+    if (job_description) {
+      userMessage = `Evaluate this CV against this role: ${job_description}\n\nCV/Resume:\n\n${cv_text}`;
     }
 
     const startTime = Date.now();
