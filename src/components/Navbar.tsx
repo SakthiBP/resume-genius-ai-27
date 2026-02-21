@@ -22,20 +22,20 @@ const Navbar = ({ score = null }: NavbarProps) => {
           to="/"
           className="flex items-center gap-3 no-underline"
           onMouseEnter={() => setLogoHovered(true)}
-          onMouseLeave={() => setLogoHovered(false)}
-        >
-          {logoHovered ? (
-            <div
-              className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all duration-200"
-              style={{ width: 28, height: 28 }}
-            >
+          onMouseLeave={() => setLogoHovered(false)}>
+
+          {logoHovered ?
+          <div
+            className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground transition-all duration-200"
+            style={{ width: 28, height: 28 }}>
+
               <HomeIcon className="h-4 w-4" />
-            </div>
-          ) : (
-            <SwimLogo size={28} />
-          )}
+            </div> :
+
+          <SwimLogo size={28} />
+          }
           <div className="flex flex-col leading-tight">
-            <span className="font-semibold text-foreground text-lg leading-none">SWIM</span>
+            <span className="font-semibold text-foreground text-lg leading-none">SWIMR</span>
             <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
           </div>
         </Link>
@@ -74,8 +74,8 @@ const Navbar = ({ score = null }: NavbarProps) => {
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </div>
-    </header>
-  );
+    </header>);
+
 };
 
 export default Navbar;
