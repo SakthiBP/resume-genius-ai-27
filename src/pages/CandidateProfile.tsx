@@ -337,7 +337,16 @@ const CandidateProfile = () => {
     editedBeforeSend: boolean,
     editSummary: string | null
   ) => {
-    if (!candidate || !pendingStatus) return;
+    console.log("handleEmailSend called", { candidate: !!candidate, pendingStatus, previousStatus, subject: subject?.slice(0, 30) });
+    
+    if (!candidate) {
+      console.error("handleEmailSend: no candidate");
+      toast({ variant: "destructive", title: "Error", description: "No candidate data available." });
+      setShowEmailPreview(false);
+      return;
+    }
+
+    const statusToSend = pendingStatus || candidate.status;
 
     try {
       const { data, error } = await supabase.functions.invoke("send-email", {
@@ -346,13 +355,15 @@ const CandidateProfile = () => {
           candidate_email: candidate.email,
           subject,
           email_body: body,
-          status_attempted: pendingStatus,
+          status_attempted: statusToSend,
           previous_status: previousStatus,
           edited_before_send: editedBeforeSend,
           edit_summary: editSummary,
           action: "send",
         },
       });
+
+      console.log("send-email response", { data, error });
 
       if (error || data?.error) {
         toast({ variant: "destructive", title: "Email failed", description: data?.error || error?.message || "Could not send email." });
