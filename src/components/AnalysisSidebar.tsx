@@ -14,52 +14,40 @@ function mapResultToInsights(r: AnalysisResult): Insight[] {
   const insights: Insight[] = [];
   let id = 0;
 
-  // Red flags - employment gaps
-  for (const gap of r.red_flags.employment_gaps) {
-    insights.push({
-      id: String(++id),
-      type: "red-flag",
-      category: "Employment Gap",
-      title: `${gap.period} (${gap.duration_months} months)`,
-      detail: `Employment gap detected during ${gap.period}.`,
-      severity: gap.severity,
-    });
-  }
+  // Red flags - only if there are actual red flags
+  if (r.red_flags.red_flag_count > 0) {
+    for (const gap of r.red_flags.employment_gaps) {
+      insights.push({
+        id: String(++id),
+        type: "red-flag",
+        category: "Employment Gap",
+        title: `${gap.period} (${gap.duration_months} months)`,
+        detail: `Employment gap detected during ${gap.period}.`,
+        severity: gap.severity,
+      });
+    }
 
-  // Red flags - inconsistencies
-  for (const inc of r.red_flags.inconsistencies) {
-    insights.push({
-      id: String(++id),
-      type: "red-flag",
-      category: "Inconsistency",
-      title: inc,
-      detail: inc,
-      severity: "medium",
-    });
-  }
+    for (const inc of r.red_flags.inconsistencies) {
+      insights.push({
+        id: String(++id),
+        type: "red-flag",
+        category: "Inconsistency",
+        title: inc,
+        detail: inc,
+        severity: "medium",
+      });
+    }
 
-  // Red flags - vague descriptions
-  for (const vague of r.red_flags.vague_descriptions) {
-    insights.push({
-      id: String(++id),
-      type: "red-flag",
-      category: "Vague Claims",
-      title: vague,
-      detail: vague,
-      severity: "medium",
-    });
-  }
-
-  // If no red flags, add a positive note
-  if (r.red_flags.red_flag_count === 0) {
-    insights.push({
-      id: String(++id),
-      type: "red-flag",
-      category: "Employment Gap",
-      title: "No red flags detected",
-      detail: "Candidate shows no employment gaps, inconsistencies, or vague claims.",
-      severity: "low",
-    });
+    for (const vague of r.red_flags.vague_descriptions) {
+      insights.push({
+        id: String(++id),
+        type: "red-flag",
+        category: "Vague Claims",
+        title: vague,
+        detail: vague,
+        severity: "medium",
+      });
+    }
   }
 
   // Suggestions from improvement_suggestions
@@ -113,13 +101,6 @@ function mapResultToInsights(r: AnalysisResult): Insight[] {
     detail: r.experience_quality.notes,
   });
 
-  insights.push({
-    id: String(++id),
-    type: "experience",
-    category: "Role Fit",
-    title: `${recMap[r.overall_score.recommendation] || r.overall_score.recommendation} — ${r.summary}`,
-    detail: r.summary,
-  });
 
   return insights;
 }
