@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -11,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Users, ArrowUpDown } from "lucide-react";
+import { Search, Users, ArrowUpDown, Download } from "lucide-react";
 import type { AnalysisResult } from "@/types/analysis";
 
 interface Candidate {
@@ -87,6 +88,43 @@ const Candidates = () => {
     await supabase.from("candidates").update({ status: newStatus }).eq("id", id);
   };
 
+  const exportCSV = () => {
+    const headers = [
+      "Candidate Name", "Email", "Overall Score", "Job Description Match Score",
+      "Skills Assessment Score", "Education Score", "Work Experience Score",
+      "Right to Work Score", "Red Flags Score", "Sentiment Score",
+      "Recommendation", "Status", "Date Analysed",
+    ];
+    const statusLabel = (s: string) => STATUS_OPTIONS.find((o) => o.value === s)?.label ?? s;
+    const rows = candidates.map((c) => {
+      const a = c.analysis_json;
+      const ss = a.overall_score?.section_scores;
+      return [
+        c.candidate_name,
+        c.email ?? "",
+        c.overall_score,
+        ss?.job_description_match?.score ?? "",
+        ss?.skills_assessment?.score ?? "",
+        ss?.education?.score ?? "",
+        ss?.work_experience?.score ?? "",
+        ss?.right_to_work?.score ?? "",
+        ss?.red_flags?.score ?? "",
+        ss?.sentiment_analysis?.score ?? "",
+        REC_LABELS[c.recommendation] || c.recommendation,
+        statusLabel(c.status),
+        new Date(c.created_at).toISOString().split("T")[0],
+      ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",");
+    });
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `swim-candidates-export-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const filtered = useMemo(() => {
     let list = candidates;
     if (filterStatus !== "all") {
@@ -113,6 +151,12 @@ const Candidates = () => {
             <Users className="h-6 w-6 text-muted-foreground" />
             <h1 className="text-2xl font-bold text-foreground uppercase">Candidate Pipeline</h1>
             <Badge variant="secondary" className="text-xs">{candidates.length}</Badge>
+            <div className="ml-auto">
+              <Button variant="outline" size="sm" onClick={exportCSV} className="gap-2 text-xs">
+                <Download className="h-3.5 w-3.5" />
+                Extract Data
+              </Button>
+            </div>
           </div>
 
           {/* Controls */}

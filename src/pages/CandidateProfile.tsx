@@ -19,7 +19,15 @@ import {
   DollarSign,
   Clock,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   RadarChart,
   PolarGrid,
@@ -227,6 +235,12 @@ const CandidateProfile = () => {
   const [loading, setLoading] = useState(true);
   const [reanalysing, setReanalysing] = useState(false);
 
+  const updateStatus = async (newStatus: string) => {
+    if (!candidate) return;
+    setCandidate((prev) => prev ? { ...prev, status: newStatus } : prev);
+    await supabase.from("candidates").update({ status: newStatus }).eq("id", candidate.id);
+  };
+
   useEffect(() => {
     if (!id) return;
     (async () => {
@@ -384,9 +398,22 @@ const CandidateProfile = () => {
                 <Badge variant="outline" className={`text-xs font-semibold px-3 py-1 ${rec.color} pointer-events-none`}>
                   {rec.label}
                 </Badge>
-                <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
-                  {statusOpt.label}
-                </Badge>
+                <Select value={candidate.status} onValueChange={updateStatus}>
+                  <SelectTrigger className="w-[160px] h-8 text-xs border-none">
+                    <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
+                      {statusOpt.label}
+                    </Badge>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        <Badge className={`text-[10px] px-2 py-0.5 ${s.color} border-0 pointer-events-none`}>
+                          {s.label}
+                        </Badge>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

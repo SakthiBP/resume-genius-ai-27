@@ -88,9 +88,9 @@ const DocumentPanel = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               {selectedRole ? (
-                <button className="h-8 px-3 text-xs font-medium border border-border bg-secondary text-secondary-foreground flex items-center gap-1.5 hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer">
-                  {selectedRole.job_title}
-                  <ChevronDown className="h-3 w-3" />
+                <button className="h-8 px-3 text-xs font-medium border border-border bg-secondary text-secondary-foreground flex items-center gap-1.5 hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer max-w-[200px]">
+                  <span className="truncate">{selectedRole.job_title}</span>
+                  <ChevronDown className="h-3 w-3 shrink-0" />
                 </button>
               ) : (
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
