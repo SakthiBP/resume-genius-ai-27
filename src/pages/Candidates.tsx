@@ -31,10 +31,10 @@ interface Candidate {
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending", color: "score-badge-muted" },
-  { value: "deny", label: "Deny", color: "score-badge-red" },
-  { value: "online_assessment", label: "Online Assessment", color: "score-badge-yellow" },
-  { value: "interview", label: "Interview", color: "score-badge-blue" },
-  { value: "hire", label: "Hire", color: "score-badge-green" },
+  { value: "deny", label: "Denied", color: "score-badge-red" },
+  { value: "online_assessment", label: "OA Scheduled", color: "score-badge-yellow" },
+  { value: "interview", label: "Interview Scheduled", color: "score-badge-blue" },
+  { value: "hire", label: "Hired", color: "score-badge-green" },
 ];
 
 function getScoreBadgeClasses(score: number) {
@@ -183,10 +183,10 @@ const Candidates = () => {
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="deny">Deny</SelectItem>
-                <SelectItem value="online_assessment">Online Assessment</SelectItem>
-                <SelectItem value="interview">Interview</SelectItem>
-                <SelectItem value="hire">Hire</SelectItem>
+                <SelectItem value="deny">Denied</SelectItem>
+                <SelectItem value="online_assessment">OA Scheduled</SelectItem>
+                <SelectItem value="interview">Interview Scheduled</SelectItem>
+                <SelectItem value="hire">Hired</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -75,10 +75,10 @@ interface SavedRole {
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending", color: "score-badge-muted" },
-  { value: "deny", label: "Deny", color: "score-badge-red" },
-  { value: "online_assessment", label: "Online Assessment", color: "score-badge-yellow" },
-  { value: "interview", label: "Interview", color: "score-badge-blue" },
-  { value: "hire", label: "Hire", color: "score-badge-green" },
+  { value: "deny", label: "Denied", color: "score-badge-red" },
+  { value: "online_assessment", label: "OA Scheduled", color: "score-badge-yellow" },
+  { value: "interview", label: "Interview Scheduled", color: "score-badge-blue" },
+  { value: "hire", label: "Hired", color: "score-badge-green" },
 ];
 
 const REC_LABELS: Record<string, { label: string; color: string }> = {
