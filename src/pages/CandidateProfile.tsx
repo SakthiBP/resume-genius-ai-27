@@ -470,22 +470,9 @@ const CandidateProfile = () => {
                 <Badge variant="outline" className={`text-xs font-semibold px-3 py-1 ${rec.color} pointer-events-none`}>
                   {rec.label}
                 </Badge>
-                <Select value={candidate.status} onValueChange={updateStatus}>
-                  <SelectTrigger className="w-[160px] h-8 text-xs border-none">
-                    <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
-                      {statusOpt.label}
-                    </Badge>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        <Badge className={`text-[10px] px-2 py-0.5 ${s.color} border-0 pointer-events-none`}>
-                          {s.label}
-                        </Badge>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Badge className={`text-[10px] px-2.5 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
+                  {statusOpt.label}
+                </Badge>
                 {/* Role switcher */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -746,6 +733,50 @@ const CandidateProfile = () => {
               <span className="flex items-center gap-1.5"><Timer className="h-4 w-4" /> {r.agent_metrics.processing_time_seconds ?? "—"}s processing</span>
               <span className="flex items-center gap-1.5"><DollarSign className="h-4 w-4" /> £{r.agent_metrics.cost_estimate_usd?.toFixed(4) ?? "0.0000"} cost</span>
               <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> {r.agent_metrics.estimated_manual_review_minutes} min saved</span>
+            </div>
+          </section>
+
+          {/* === CANDIDATE DECISION === */}
+          <section className="bg-card border border-border p-6">
+            <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Candidate Decision</h3>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Hire / Deny buttons */}
+              <Button
+                onClick={() => updateStatus("hire")}
+                className={`gap-2 text-sm font-semibold px-6 py-2.5 transition-all duration-200 ${
+                  candidate.status === "hire"
+                    ? "bg-green-600 hover:bg-green-700 text-white ring-2 ring-green-400 ring-offset-2 ring-offset-background"
+                    : "bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white border border-green-600/40"
+                }`}
+              >
+                <Award className="h-4 w-4" />
+                Hire
+              </Button>
+              <Button
+                onClick={() => updateStatus("deny")}
+                className={`gap-2 text-sm font-semibold px-6 py-2.5 transition-all duration-200 ${
+                  candidate.status === "deny"
+                    ? "bg-red-600 hover:bg-red-700 text-white ring-2 ring-red-400 ring-offset-2 ring-offset-background"
+                    : "bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-600/40"
+                }`}
+              >
+                <AlertTriangle className="h-4 w-4" />
+                Deny
+              </Button>
+
+              {/* Assign Stage dropdown */}
+              <Select
+                value={candidate.status === "online_assessment" || candidate.status === "interview" ? candidate.status : ""}
+                onValueChange={updateStatus}
+              >
+                <SelectTrigger className="w-[200px] h-10 text-sm border-border">
+                  <SelectValue placeholder="Assign Stage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="online_assessment">Online Assessment</SelectItem>
+                  <SelectItem value="interview">Interview</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </section>
 
