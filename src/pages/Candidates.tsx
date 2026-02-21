@@ -62,7 +62,6 @@ function timeAgo(dateStr: string) {
 }
 
 const Candidates = () => {
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date");
@@ -70,8 +69,8 @@ const Candidates = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [isDark]);
+    fetchCandidates();
+  }, []);
 
   useEffect(() => {
     fetchCandidates();
@@ -110,7 +109,7 @@ const Candidates = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background transition-colors duration-300">
-      <Navbar score={null} isDark={isDark} onToggleTheme={() => setIsDark(!isDark)} showCandidatesLink />
+      <Navbar score={null} />
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto px-4 py-8">
@@ -204,14 +203,14 @@ const Candidates = () => {
                     {/* Status dropdown */}
                     <Select value={c.status} onValueChange={(v) => updateStatus(c.id, v)}>
                       <SelectTrigger className="w-[160px] h-8 text-xs border-none">
-                        <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0`}>
+                        <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
                           {statusOpt.label}
                         </Badge>
                       </SelectTrigger>
                       <SelectContent>
                         {STATUS_OPTIONS.map((s) => (
                           <SelectItem key={s.value} value={s.value}>
-                            <Badge className={`text-[10px] px-2 py-0.5 ${s.color} border-0`}>
+                            <Badge className={`text-[10px] px-2 py-0.5 ${s.color} border-0 pointer-events-none`}>
                               {s.label}
                             </Badge>
                           </SelectItem>

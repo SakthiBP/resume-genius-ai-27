@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import DocumentPanel from "@/components/DocumentPanel";
 import AnalysisSidebar from "@/components/AnalysisSidebar";
@@ -14,11 +14,6 @@ const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [isDark, setIsDark] = useState(true);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [isDark]);
 
   const handleFileChange = async (newFile: File | null) => {
     setFile(newFile);
@@ -77,7 +72,7 @@ const Index = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background transition-colors duration-300">
-      <Navbar score={overallScore} isDark={isDark} onToggleTheme={() => setIsDark(!isDark)} />
+      <Navbar score={overallScore} />
 
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
         <div className="flex-[3] flex flex-col min-h-0 border-r border-border">

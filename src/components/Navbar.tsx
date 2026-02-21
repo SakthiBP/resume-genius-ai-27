@@ -3,15 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import OverallScoreBadge from "./OverallScoreBadge";
 import SwimLogo from "./SwimLogo";
+import { useTheme } from "@/hooks/useTheme";
 
 interface NavbarProps {
   score: number | null;
-  isDark: boolean;
-  onToggleTheme: () => void;
-  showCandidatesLink?: boolean;
 }
 
-const Navbar = ({ score, isDark, onToggleTheme, showCandidatesLink }: NavbarProps) => {
+const Navbar = ({ score }: NavbarProps) => {
+  const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
   return (
     <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0 transition-colors duration-300">
@@ -39,7 +38,7 @@ const Navbar = ({ score, isDark, onToggleTheme, showCandidatesLink }: NavbarProp
             Analyzer
           </Button>
         </Link>
-        <Button variant="ghost" size="icon" onClick={onToggleTheme} className="h-8 w-8">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8">
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </div>
