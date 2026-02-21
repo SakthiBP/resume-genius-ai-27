@@ -84,7 +84,7 @@ const Home = () => {
                   Analyse New Resume
                 </Button>
               </Link>
-              <Link to="/batch">
+              <Link to="/analyze">
                 <Button variant="outline" className="gap-2 text-xs uppercase tracking-wide">
                   <Zap className="h-3.5 w-3.5" />
                   Batch Upload

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { FileText, X, Upload } from "lucide-react";
+import { FileText, Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -10,43 +10,41 @@ const ACCEPTED_TYPES = [
 const ACCEPTED_EXTENSIONS = [".pdf", ".docx"];
 
 interface FileUploadZoneProps {
-  file: File | null;
-  onFileChange: (file: File | null) => void;
+  /** Called with validated files (one or many) */
+  onFilesChange: (files: File[]) => void;
+  /** Optional: compact mode for tighter spaces */
+  compact?: boolean;
 }
 
-const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
-  const [isDragging, setIsDragging] = useState(false);
+function validateFile(f: File): boolean {
+  const ext = f.name.substring(f.name.lastIndexOf(".")).toLowerCase();
+  if (!ACCEPTED_TYPES.includes(f.type) && !ACCEPTED_EXTENSIONS.includes(ext)) {
+    toast({
+      variant: "destructive",
+      title: "Invalid file type",
+      description: `"${f.name}" is not a PDF or DOCX file.`,
+    });
+    return false;
+  }
+  return true;
+}
 
-  const validateFile = (f: File): boolean => {
-    const ext = f.name.substring(f.name.lastIndexOf(".")).toLowerCase();
-    if (!ACCEPTED_TYPES.includes(f.type) && !ACCEPTED_EXTENSIONS.includes(ext)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid file type",
-        description: "Please upload a .pdf or .docx file.",
-      });
-      return false;
-    }
-    return true;
-  };
+const FileUploadZone = ({ onFilesChange, compact }: FileUploadZoneProps) => {
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile && validateFile(droppedFile)) {
-        onFileChange(droppedFile);
-      }
+      const dropped = Array.from(e.dataTransfer.files).filter(validateFile);
+      if (dropped.length > 0) onFilesChange(dropped);
     },
-    [onFileChange]
+    [onFilesChange]
   );
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected && validateFile(selected)) {
-      onFileChange(selected);
-    }
+    const selected = Array.from(e.target.files ?? []).filter(validateFile);
+    if (selected.length > 0) onFilesChange(selected);
     e.target.value = "";
   };
 
@@ -59,52 +57,31 @@ const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
       className={cn(
-        "relative flex flex-col items-center justify-center border-2 border-dashed p-10 transition-all duration-200 cursor-pointer group",
+        "relative flex flex-col items-center justify-center border-2 border-dashed transition-all duration-200 cursor-pointer group",
+        compact ? "p-6" : "p-10",
         isDragging
           ? "border-foreground/60 bg-foreground/5 scale-[1.01]"
           : "border-border hover:border-foreground/40 hover:bg-accent/40"
       )}
-      onClick={() => document.getElementById("file-input")?.click()}
+      onClick={() => document.getElementById("file-input-multi")?.click()}
     >
       <input
-        id="file-input"
+        id="file-input-multi"
         type="file"
         accept=".pdf,.docx"
+        multiple
         className="hidden"
         onChange={handleFileInput}
       />
 
-      {file ? (
-        <div className="flex items-center gap-3">
-          <FileText className="h-8 w-8 text-foreground" />
-          <div className="text-left">
-            <p className="font-medium text-foreground">{file.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {(file.size / 1024).toFixed(1)} KB
-            </p>
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onFileChange(null);
-            }}
-            className="ml-2 rounded-full p-1 text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      ) : (
-        <>
-          <Upload size={48} className="mb-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          <p className="font-medium text-foreground">
-            Drop candidate resume here or{" "}
-            <span className="text-foreground font-semibold underline underline-offset-2">Browse Files</span>
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Supports PDF and DOCX
-          </p>
-        </>
-      )}
+      <Upload size={compact ? 32 : 48} className="mb-3 text-muted-foreground group-hover:text-foreground transition-colors" />
+      <p className={cn("font-medium text-foreground", compact ? "text-sm" : "text-base")}>
+        Drop CVs here or{" "}
+        <span className="font-semibold underline underline-offset-2">Browse Files</span>
+      </p>
+      <p className="text-xs text-muted-foreground mt-1">
+        Supports PDF and DOCX — drop one or many
+      </p>
     </div>
   );
 };
