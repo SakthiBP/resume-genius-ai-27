@@ -84,10 +84,12 @@ const Home = () => {
                   Analyse New Resume
                 </Button>
               </Link>
-              <Button variant="outline" className="gap-2 text-xs uppercase tracking-wide" disabled>
-                <Zap className="h-3.5 w-3.5" />
-                Batch Upload (Beta)
-              </Button>
+              <Link to="/batch">
+                <Button variant="outline" className="gap-2 text-xs uppercase tracking-wide">
+                  <Zap className="h-3.5 w-3.5" />
+                  Batch Upload
+                </Button>
+              </Link>
             </div>
           </div>
 

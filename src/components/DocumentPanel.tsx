@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FileText, RefreshCw, ChevronDown } from "lucide-react";
+import { FileText, RefreshCw, ChevronDown, PackageCheck } from "lucide-react";
 import WavesLoader from "@/components/WavesLoader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +12,7 @@ import {
 import FileUploadZone from "./FileUploadZone";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useStagingQueue, type StagedFile } from "@/contexts/StagingQueueContext";
 
 interface SelectedRole {
   id: string;
@@ -48,6 +49,9 @@ const DocumentPanel = ({
 }: DocumentPanelProps) => {
   const [roles, setRoles] = useState<SelectedRole[]>([]);
   const [roleError, setRoleError] = useState(false);
+  const [sourceTab, setSourceTab] = useState<"upload" | "queue">("upload");
+  const { getPendingFiles } = useStagingQueue();
+  const [selectedQueueFile, setSelectedQueueFile] = useState<StagedFile | null>(null);
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -65,7 +69,6 @@ const DocumentPanel = ({
     fetchRoles();
   }, []);
 
-  // Clear role error when a role is selected
   useEffect(() => {
     if (selectedRole) setRoleError(false);
   }, [selectedRole]);
@@ -83,13 +86,99 @@ const DocumentPanel = ({
     onAnalyze();
   };
 
+  const handleSelectFromQueue = async (sf: StagedFile) => {
+    setSelectedQueueFile(sf);
+
+    if (sf.extractedText) {
+      // Already extracted, simulate as if a file was loaded
+      onFileChange(sf.file);
+      // We need to pass extracted text up — use a small trick: call onFileChange with file
+      // then the parent will extract. But the file is already there.
+      // Actually the parent handles extraction. Just set the file.
+      return;
+    }
+
+    if (!sf.file) {
+      toast({ variant: "destructive", title: "File unavailable", description: "The original file data is no longer available." });
+      return;
+    }
+
+    // Let parent handle extraction via onFileChange
+    onFileChange(sf.file);
+  };
+
+  const pendingFiles = getPendingFiles();
   const wordCount = extractedText ? extractedText.split(/\s+/).filter(Boolean).length : 0;
 
   if (!file) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-lg">
-          <FileUploadZone file={null} onFileChange={onFileChange} />
+        <div className="w-full max-w-lg space-y-6">
+          {/* Source Toggle */}
+          <div className="flex items-center gap-0 border border-border w-fit">
+            <button
+              onClick={() => setSourceTab("upload")}
+              className={`flex items-center gap-2 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors duration-200 ${
+                sourceTab === "upload"
+                  ? "bg-foreground text-background"
+                  : "bg-card text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Upload New File
+            </button>
+            <button
+              onClick={() => setSourceTab("queue")}
+              className={`flex items-center gap-2 px-5 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors duration-200 border-l border-border ${
+                sourceTab === "queue"
+                  ? "bg-foreground text-background"
+                  : "bg-card text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <PackageCheck className="h-3.5 w-3.5" />
+              Select from Queue
+              {pendingFiles.length > 0 && (
+                <span className="ml-1 text-[10px] tabular-nums">({pendingFiles.length})</span>
+              )}
+            </button>
+          </div>
+
+          {sourceTab === "upload" ? (
+            <FileUploadZone file={null} onFileChange={onFileChange} />
+          ) : (
+            <div className="border border-border bg-card">
+              {pendingFiles.length === 0 ? (
+                <div className="p-10 text-center">
+                  <PackageCheck className="h-8 w-8 mx-auto mb-3 text-muted-foreground opacity-40" />
+                  <p className="text-sm text-muted-foreground">No pending files in queue.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Upload files from the Batch Upload page first.</p>
+                </div>
+              ) : (
+                <div>
+                  <div className="px-4 py-3 border-b border-border text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                    Select a pending file to analyse
+                  </div>
+                  {pendingFiles.map((sf) => (
+                    <button
+                      key={sf.id}
+                      onClick={() => handleSelectFromQueue(sf)}
+                      disabled={isExtracting}
+                      className="w-full flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0 hover:bg-accent transition-colors duration-200 text-left"
+                    >
+                      <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{sf.fileName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(sf.fileSize / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground uppercase">Pending</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -135,7 +224,7 @@ const DocumentPanel = ({
               </DropdownMenuContent>
             </DropdownMenu>
             {roleError && (
-              <span className="text-[10px] text-red-500 mt-1">Please select a job role before analysing.</span>
+              <span className="text-[10px] text-destructive mt-1">Please select a job role before analysing.</span>
             )}
           </div>
           <Button
@@ -154,7 +243,10 @@ const DocumentPanel = ({
             )}
           </Button>
           <button
-            onClick={() => onFileChange(null)}
+            onClick={() => {
+              setSelectedQueueFile(null);
+              onFileChange(null);
+            }}
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors duration-200"
           >
             <RefreshCw className="h-3 w-3" /> Replace
