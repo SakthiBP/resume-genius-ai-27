@@ -87,6 +87,8 @@ serve(async (req) => {
 
     const startTime = Date.now();
 
+    const originalUserMessage = `Analyze this CV:\n\n<cv_text>\n${cv_text}\n</cv_text>\n\n<job_description>\n${job_description || 'General evaluation'}\n</job_description>\n\nReturn ONLY valid JSON.`;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -100,7 +102,7 @@ serve(async (req) => {
         system: SYSTEM_PROMPT,
         messages: [{
           role: 'user',
-          content: `Analyze this CV:\n\n<cv_text>\n${cv_text}\n</cv_text>\n\n<job_description>\n${job_description || 'General evaluation'}\n</job_description>\n\nReturn ONLY valid JSON.`
+          content: originalUserMessage
         }]
       })
     });
@@ -113,23 +115,59 @@ serve(async (req) => {
 
     const data = await response.json();
 
-    // Calculate actual cost from Anthropic token usage
-    const inputTokens = data.usage?.input_tokens ?? 0;
-    const outputTokens = data.usage?.output_tokens ?? 0;
-    const costUsd = (inputTokens / 1_000_000) * 3 + (outputTokens / 1_000_000) * 15;
+    const inputTokens = data.usage.input_tokens;
+    const outputTokens = data.usage.output_tokens;
+    const cost = (inputTokens * 3 / 1000000) + (outputTokens * 15 / 1000000);
 
     let jsonStr = data.content[0].text
       .replace(/```json\n?/g, '')
       .replace(/```\n?/g, '')
       .trim();
 
-    const analysis = JSON.parse(jsonStr);
+    let analysis;
+    try {
+      analysis = JSON.parse(jsonStr);
+    } catch (e) {
+      // If parsing fails, retry with a correction message
+      const retryResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': Deno.env.get('CLAUDE_API_KEY'),
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          messages: [
+            { role: 'user', content: originalUserMessage },
+            { role: 'assistant', content: data.content[0].text },
+            { role: 'user', content: 'Your previous response was not valid JSON. Return ONLY valid JSON with no markdown formatting, no backticks, no explanation.' }
+          ]
+        })
+      });
+
+      const retryData = await retryResponse.json();
+      let retryStr = retryData.content[0].text
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      analysis = JSON.parse(retryStr);
+    }
 
     const processingTime = ((Date.now() - startTime) / 1000).toFixed(1);
     analysis.agent_metrics = {
       ...analysis.agent_metrics,
       processing_time_seconds: parseFloat(processingTime),
-      cost_estimate_usd: parseFloat(costUsd.toFixed(4)),
+      cost_estimate_usd: parseFloat(cost.toFixed(4)),
+    };
+
+    analysis.token_usage = {
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      total_tokens: inputTokens + outputTokens,
+      actual_cost_usd: parseFloat(cost.toFixed(4))
     };
 
     return new Response(JSON.stringify(analysis), {
