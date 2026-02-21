@@ -43,7 +43,7 @@ ${recruiter_name}`,
 
     case "hire":
       return {
-        subject: `Congratulations — Offer of Employment${roleStr}`,
+        subject: `Congratulations - Offer of Employment${roleStr}`,
         body: `Dear ${candidate_name},
 
 We are delighted to inform you that, following a thorough evaluation of your application${roleStr}, we would like to extend an offer of employment.
@@ -52,7 +52,7 @@ Your skills, experience, and potential have truly impressed us, and we believe y
 
 In the meantime, please do not hesitate to reach out with any questions.
 
-Congratulations once again — we look forward to working with you!
+Congratulations once again - we look forward to working with you!
 
 Kind regards,
 ${recruiter_name}`,
@@ -60,7 +60,7 @@ ${recruiter_name}`,
 
     case "online_assessment":
       return {
-        subject: `Next Steps — Online Assessment${roleStr}`,
+        subject: `Next Steps - Online Assessment${roleStr}`,
         body: `Dear ${candidate_name},
 
 Thank you for your application${roleIntro}. We are pleased to inform you that you have been shortlisted to progress to the next stage of our recruitment process — an online assessment.${role_title ? `\n\nThis assessment is specifically designed to evaluate your suitability for the ${role_title} position and will cover areas relevant to the role.` : ""}
@@ -75,7 +75,7 @@ ${recruiter_name}`,
 
     case "interview":
       return {
-        subject: `Interview Invitation — ${role_title || "Open Position"}`,
+        subject: `Interview Invitation - ${role_title || "Open Position"}`,
         body: `Dear ${candidate_name},
 
 We are pleased to invite you to an interview${roleIntro}. Your application has been reviewed and we would like to learn more about your experience and aspirations${role_title ? ` as they relate to the ${role_title} role` : ""}.${role_title ? `\n\nDuring the interview, we will discuss the ${role_title} position in greater detail and explore how your background aligns with the requirements of the role.` : ""}
