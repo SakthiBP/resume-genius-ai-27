@@ -11,13 +11,111 @@ interface AnalysisSidebarProps {
   hasRole: boolean;
 }
 
-function mapResultToInsights(r: AnalysisResult): Insight[] {
+/* ── helpers to support both old and new analysis shapes ── */
+function getField<T>(result: AnalysisResult, newPath: T | undefined, legacyPath: T | undefined): T | undefined {
+  return newPath !== undefined ? newPath : legacyPath;
+}
+
+function getTechnicalSkills(r: AnalysisResult): string[] {
+  return r.skills_assessment?.technical_skills ?? r.skills_extraction?.technical_skills ?? [];
+}
+function getSoftSkills(r: AnalysisResult): string[] {
+  return r.skills_assessment?.soft_skills ?? r.skills_extraction?.soft_skills ?? [];
+}
+function getCertifications(r: AnalysisResult): string[] {
+  return r.skills_assessment?.certifications ?? r.skills_extraction?.certifications ?? [];
+}
+function getTotalYears(r: AnalysisResult): number {
+  return r.work_experience?.total_years ?? r.experience_quality?.total_years ?? 0;
+}
+function getProgression(r: AnalysisResult): string {
+  return r.work_experience?.progression ?? r.experience_quality?.progression ?? "unclear";
+}
+function getExperienceNotes(r: AnalysisResult): string {
+  return r.work_experience?.notes ?? r.experience_quality?.notes ?? "";
+}
+function getExperienceScore(r: AnalysisResult): number {
+  return r.work_experience?.score ?? r.experience_quality?.score ?? 0;
+}
+function getSkillMatchPct(r: AnalysisResult): number | null {
+  if (r.skills_assessment) return r.skills_assessment.skill_match_percentage;
+  return r.skills_extraction?.skill_match_percentage ?? null;
+}
+function getRedFlagGaps(r: AnalysisResult) {
+  return r.red_flags.employment_gaps ?? [];
+}
+
+/* ── Eligibility colour helper ── */
+function eligibilityBadge(eligible: string | undefined): { colour: string; label: string } {
+  switch (eligible) {
+    case "yes":
+    case "likely":
+      return { colour: "score-badge-green", label: "Eligible" };
+    case "no":
+    case "unlikely":
+      return { colour: "score-badge-red", label: "Ineligible" };
+    default:
+      return { colour: "score-badge-yellow", label: "Needs Verification" };
+  }
+}
+
+function mapResultToInsights(r: AnalysisResult, hasRole: boolean): Insight[] {
   const insights: Insight[] = [];
   let id = 0;
 
-  // Red flags - only if there are actual red flags
+  // JD Match card (new)
+  if (r.job_description_match && hasRole) {
+    insights.push({
+      id: String(++id),
+      type: "jd-match",
+      category: "Job Description Match",
+      title: `${r.job_description_match.keyword_match_percentage}% keyword match`,
+      detail: r.job_description_match.role_alignment_notes || "Keyword analysis complete.",
+      badgesMatched: r.job_description_match.keywords_found?.slice(0, 12),
+      badgesMissing: r.job_description_match.keywords_missing?.slice(0, 8),
+    });
+  }
+
+  // Education card (new)
+  if (r.education) {
+    const edu = r.education;
+    const parts: string[] = [];
+    if (edu.degree) parts.push(edu.degree);
+    if (edu.course) parts.push(`in ${edu.course}`);
+    if (edu.institution) parts.push(`at ${edu.institution}`);
+    const gradeStr = edu.gpa_or_grade ? ` — Grade: ${edu.gpa_or_grade}` : "";
+    const onTimeStr = edu.completed_on_time === "yes" ? " · Completed on time" : edu.completed_on_time === "no" ? " · Extended duration" : "";
+
+    insights.push({
+      id: String(++id),
+      type: "education",
+      category: "Education",
+      title: parts.join(" ") || "Education details",
+      detail: `${edu.notes || ""}${gradeStr}${onTimeStr}`.trim() || "Education data extracted.",
+    });
+  }
+
+  // Right to Work card (new)
+  if (r.right_to_work) {
+    const rtw = r.right_to_work;
+    const elig = eligibilityBadge(rtw.eligible_to_work);
+    insights.push({
+      id: String(++id),
+      type: "right-to-work",
+      category: elig.label,
+      title: rtw.visa_sponsorship_required === "yes"
+        ? "Visa sponsorship required"
+        : rtw.eligible_to_work === "yes"
+          ? "No sponsorship required"
+          : "Work eligibility unclear — verify",
+      detail: rtw.notes || "Right to work information extracted.",
+      severity: rtw.eligible_to_work === "no" || rtw.eligible_to_work === "unlikely" ? "high" : rtw.eligible_to_work === "unknown" ? "medium" : undefined,
+    });
+  }
+
+  // Red flags
   if (r.red_flags.red_flag_count > 0) {
-    for (const gap of r.red_flags.employment_gaps) {
+    for (const gap of getRedFlagGaps(r)) {
       insights.push({
         id: String(++id),
         type: "red-flag",
@@ -27,81 +125,44 @@ function mapResultToInsights(r: AnalysisResult): Insight[] {
         severity: gap.severity,
       });
     }
-
     for (const inc of r.red_flags.inconsistencies) {
-      insights.push({
-        id: String(++id),
-        type: "red-flag",
-        category: "Inconsistency",
-        title: inc,
-        detail: inc,
-        severity: "medium",
-      });
+      insights.push({ id: String(++id), type: "red-flag", category: "Inconsistency", title: inc, detail: inc, severity: "medium" });
     }
-
     for (const vague of r.red_flags.vague_descriptions) {
-      insights.push({
-        id: String(++id),
-        type: "red-flag",
-        category: "Vague Claims",
-        title: vague,
-        detail: vague,
-        severity: "medium",
-      });
+      insights.push({ id: String(++id), type: "red-flag", category: "Vague Claims", title: vague, detail: vague, severity: "medium" });
     }
   }
 
-  // Suggestions from improvement_suggestions
+  // Suggestions
   for (const suggestion of r.overall_score.improvement_suggestions.slice(0, 2)) {
-    insights.push({
-      id: String(++id),
-      type: "suggestion",
-      category: "Interview Focus Area",
-      title: suggestion,
-      detail: suggestion,
-    });
+    insights.push({ id: String(++id), type: "suggestion", category: "Interview Focus Area", title: suggestion, detail: suggestion });
   }
 
   // Skills
-  insights.push({
-    id: String(++id),
-    type: "skill",
-    category: "Technical Skills",
-    title: `${r.skills_extraction.technical_skills.length} technical skills identified`,
-    detail: r.skills_extraction.skill_match_percentage
-      ? `Skill match: ${r.skills_extraction.skill_match_percentage}%`
-      : "Technical skills extracted from resume.",
-    badges: r.skills_extraction.technical_skills.slice(0, 10),
-  });
-
-  if (r.skills_extraction.soft_skills.length > 0) {
+  const techSkills = getTechnicalSkills(r);
+  if (techSkills.length > 0) {
     insights.push({
       id: String(++id),
       type: "skill",
-      category: "Soft Skills",
-      title: `${r.skills_extraction.soft_skills.length} soft skills identified`,
-      detail: "Soft skills extracted from resume content.",
-      badges: r.skills_extraction.soft_skills,
+      category: "Technical Skills",
+      title: `${techSkills.length} technical skills identified`,
+      detail: getSkillMatchPct(r) != null ? `Skill match: ${getSkillMatchPct(r)}%` : "Technical skills extracted from resume.",
+      badges: techSkills.slice(0, 10),
     });
   }
+  const softSkills = getSoftSkills(r);
+  if (softSkills.length > 0) {
+    insights.push({ id: String(++id), type: "skill", category: "Soft Skills", title: `${softSkills.length} soft skills identified`, detail: "Soft skills extracted from resume content.", badges: softSkills });
+  }
 
-  // Experience / Role Fit
-  const recMap: Record<string, string> = {
-    strong_yes: "Strong Yes",
-    yes: "Yes",
-    maybe: "Maybe",
-    no: "No",
-    strong_no: "Strong No",
-  };
-
+  // Experience
   insights.push({
     id: String(++id),
     type: "experience",
     category: "Career Progression",
-    title: `${r.experience_quality.total_years}+ years — ${r.experience_quality.progression.replace("_", " ")} trajectory`,
-    detail: r.experience_quality.notes,
+    title: `${getTotalYears(r)}+ years — ${getProgression(r).replace("_", " ")} trajectory`,
+    detail: getExperienceNotes(r),
   });
-
 
   return insights;
 }
@@ -112,7 +173,7 @@ const AnalysisSidebar = ({ isLoading, hasResults, result, hasRole }: AnalysisSid
       <div className="p-6 space-y-6">
         <Skeleton className="h-6 w-40" />
         <div className="space-y-4">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(7)].map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="h-3 w-24" />
               <Skeleton className="h-1.5 w-full" />
@@ -137,20 +198,34 @@ const AnalysisSidebar = ({ isLoading, hasResults, result, hasRole }: AnalysisSid
     );
   }
 
-  const insights = mapResultToInsights(result);
+  const insights = mapResultToInsights(result, hasRole);
   const metrics = result.agent_metrics;
+
+  // Score bars — use new structure if available, fallback to legacy
+  const jdScore = result.job_description_match?.score ?? 0;
+  const skillsScore = result.skills_assessment?.score ?? (getSkillMatchPct(result) ?? 0);
+  const educationScore = result.education?.score ?? 0;
+  const experienceScore = getExperienceScore(result);
+  const rtwScore = result.right_to_work?.score ?? 0;
+  const redFlagsScore = result.red_flags?.score ?? (result.red_flags.red_flag_count === 0 ? 100 : Math.max(0, 100 - result.red_flags.red_flag_count * 15));
+  const sentimentScore = result.sentiment_analysis.score;
+
+  const isNewFormat = !!result.job_description_match;
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Category Score Bars */}
+        {/* Category Score Bars — 7 sections */}
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Candidate Evaluation</h3>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <ScoreBar label="Sentiment" score={result.sentiment_analysis.score} delay={100} />
-            <ScoreBar label="Relevance" score={result.usefulness_score.relevance_to_role} delay={200} notApplicable={!hasRole} />
-            <ScoreBar label="Skills Match" score={result.skills_extraction.skill_match_percentage ?? result.usefulness_score.score} delay={300} notApplicable={!hasRole} />
-            <ScoreBar label="Experience" score={result.experience_quality.score} delay={400} />
+            <ScoreBar label="JD Match" score={jdScore} delay={100} notApplicable={!hasRole} weightLabel={isNewFormat ? "20%" : undefined} />
+            <ScoreBar label="Skills" score={skillsScore} delay={150} weightLabel={isNewFormat ? "15%" : undefined} />
+            <ScoreBar label="Education" score={educationScore} delay={200} weightLabel={isNewFormat ? "15%" : undefined} />
+            <ScoreBar label="Experience" score={experienceScore} delay={250} weightLabel={isNewFormat ? "25%" : undefined} />
+            <ScoreBar label="Right to Work" score={rtwScore} delay={300} weightLabel={isNewFormat ? "10%" : undefined} />
+            <ScoreBar label="Red Flags" score={redFlagsScore} delay={350} weightLabel={isNewFormat ? "5%" : undefined} />
+            <ScoreBar label="Sentiment" score={sentimentScore} delay={400} weightLabel={isNewFormat ? "10%" : undefined} />
           </div>
         </div>
 

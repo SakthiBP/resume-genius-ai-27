@@ -5,6 +5,7 @@ interface ScoreBarProps {
   score: number;
   delay?: number;
   notApplicable?: boolean;
+  weightLabel?: string;
 }
 
 const getBarColor = (score: number) => {
@@ -13,7 +14,7 @@ const getBarColor = (score: number) => {
   return "bg-score-red";
 };
 
-const ScoreBar = ({ label, score, delay = 0, notApplicable = false }: ScoreBarProps) => {
+const ScoreBar = ({ label, score, delay = 0, notApplicable = false, weightLabel }: ScoreBarProps) => {
   const [width, setWidth] = useState(0);
   const [displayScore, setDisplayScore] = useState(0);
 
@@ -47,7 +48,12 @@ const ScoreBar = ({ label, score, delay = 0, notApplicable = false }: ScoreBarPr
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-foreground">{label}</span>
+        <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
+          {label}
+          {weightLabel && (
+            <span className="text-[10px] text-muted-foreground font-normal">{weightLabel}</span>
+          )}
+        </span>
         {notApplicable ? (
           <span className="text-xs text-muted-foreground italic">N/A</span>
         ) : (
