@@ -40,7 +40,7 @@ const InsightCard = ({ insight, index }: InsightCardProps) => {
 
   return (
     <div
-      className="animate-fade-in-up border border-border bg-card hover:bg-accent/40 transition-colors duration-200 cursor-pointer"
+      className="animate-fade-in-up border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer"
       style={{ animationDelay: `${index * 80}ms` }}
       onClick={() => setExpanded(!expanded)}
     >

@@ -166,7 +166,7 @@ const Candidates = () => {
                   <div
                     key={c.id}
                     onClick={() => navigate(`/candidates/${c.id}`)}
-                    className="flex items-center gap-4 p-4 border border-border bg-card hover:bg-accent/40 transition-colors duration-200 cursor-pointer"
+                    className="flex items-center gap-4 p-4 border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer"
                   >
                     {/* Name & email */}
                     <div className="flex-1 min-w-0">

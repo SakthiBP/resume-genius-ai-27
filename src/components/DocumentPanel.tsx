@@ -128,7 +128,7 @@ const DocumentPanel = ({
           </Button>
           <button
             onClick={() => onFileChange(null)}
-            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors duration-200"
           >
             <RefreshCw className="h-3 w-3" /> Replace
           </button>

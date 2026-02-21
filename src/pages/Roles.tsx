@@ -233,7 +233,7 @@ const Roles = () => {
               {roles.map((role) => (
                 <Card
                   key={role.id}
-                  className="cursor-pointer hover:bg-accent/40 transition-colors duration-200"
+                  className="cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors duration-200"
                   onClick={() => openEditor(role)}
                 >
                   <CardContent className="py-4 px-5 flex items-center justify-between">
