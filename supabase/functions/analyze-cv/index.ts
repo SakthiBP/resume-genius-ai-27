@@ -85,46 +85,45 @@ serve(async (req) => {
       );
     }
 
-    let userMessage = `Analyze this CV/Resume:\n\n${cv_text}`;
-    if (job_description) {
-      userMessage = `Evaluate this CV against this role: ${job_description}\n\nCV/Resume:\n\n${cv_text}`;
-    }
-
     const startTime = Date.now();
 
-    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "x-api-key": CLAUDE_API_KEY,
-        "anthropic-version": "2023-06-01",
+        'Content-Type': 'application/json',
+        'x-api-key': Deno.env.get('CLAUDE_API_KEY'),
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userMessage }],
-      }),
+        messages: [{
+          role: 'user',
+          content: `Analyze this CV:\n\n<cv_text>\n${cv_text}\n</cv_text>\n\n<job_description>\n${job_description || 'General evaluation'}\n</job_description>\n\nReturn ONLY valid JSON.`
+        }]
+      })
     });
 
-    if (!claudeResponse.ok) {
-      const errorBody = await claudeResponse.text();
-      console.error("Claude API error:", claudeResponse.status, errorBody);
-      throw new Error(`Claude API error: ${claudeResponse.status}`);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error("Claude API error:", response.status, errorBody);
+      throw new Error(`Claude API error: ${response.status}`);
     }
 
-    const claudeData = await claudeResponse.json();
-    let analysisText = claudeData.content?.[0]?.text || "";
+    const data = await response.json();
 
     // Calculate actual cost from Anthropic token usage
-    const inputTokens = claudeData.usage?.input_tokens ?? 0;
-    const outputTokens = claudeData.usage?.output_tokens ?? 0;
+    const inputTokens = data.usage?.input_tokens ?? 0;
+    const outputTokens = data.usage?.output_tokens ?? 0;
     const costUsd = (inputTokens / 1_000_000) * 3 + (outputTokens / 1_000_000) * 15;
 
-    // Strip markdown backticks if present
-    analysisText = analysisText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    let jsonStr = data.content[0].text
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
 
-    const analysis = JSON.parse(analysisText);
+    const analysis = JSON.parse(jsonStr);
 
     const processingTime = ((Date.now() - startTime) / 1000).toFixed(1);
     analysis.agent_metrics = {
