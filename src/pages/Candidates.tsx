@@ -77,6 +77,8 @@ const Candidates = () => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [deleteTarget, setDeleteTarget] = useState<Candidate | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCandidates();
@@ -96,6 +98,23 @@ const Candidates = () => {
       prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
     );
     await supabase.from("candidates").update({ status: newStatus }).eq("id", id);
+  };
+
+  const deleteCandidate = async () => {
+    if (!deleteTarget) return;
+    setRemovingId(deleteTarget.id);
+    setDeleteTarget(null);
+    // Wait for fade-out animation
+    await new Promise((r) => setTimeout(r, 300));
+    const { error } = await supabase.from("candidates").delete().eq("id", deleteTarget.id);
+    if (error) {
+      toast({ variant: "destructive", title: "Failed to delete", description: error.message });
+      setRemovingId(null);
+    } else {
+      setCandidates((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+      setRemovingId(null);
+      toast({ title: "Candidate removed" });
+    }
   };
 
   const filtered = useMemo(() => {
@@ -177,8 +196,17 @@ const Candidates = () => {
                   <div
                     key={c.id}
                     onClick={() => navigate(`/candidates/${c.id}`)}
-                    className="flex items-center gap-4 p-4 border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer"
+                    className={`relative flex items-center gap-4 p-4 border border-border bg-card hover:bg-accent hover:text-accent-foreground transition-all duration-300 cursor-pointer ${removingId === c.id ? "opacity-0 scale-95" : "opacity-100"}`}
                   >
+                    {/* Delete button */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}
+                      className="absolute top-2 right-2 p-1 text-destructive/50 hover:text-destructive hover:scale-110 transition-all duration-200"
+                      aria-label="Remove candidate"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+
                     {/* Name & email */}
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-foreground truncate block">
@@ -230,6 +258,24 @@ const Candidates = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Candidate</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {deleteTarget?.candidate_name} from the pipeline? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteCandidate} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
