@@ -104,11 +104,12 @@ interface Candidate {
   email: string | null;
   overall_score: number;
   recommendation: string;
-  analysis_json: AnalysisResult;
+  analysis_json: any;
   cv_text: string;
   job_description: string | null;
   status: string;
   created_at: string;
+  source?: string | null;
 }
 
 /* ── compat helpers for old/new analysis shapes ── */
@@ -549,13 +550,14 @@ const CandidateProfile = () => {
 
   if (!candidate) return null;
 
-  const r = candidate.analysis_json;
+  const r = candidate.analysis_json || {} as any;
+  const isImported = candidate.source === 'data_sources' || !r.sentiment_analysis;
   const rec = REC_LABELS[candidate.recommendation] || { label: candidate.recommendation, color: "score-badge-muted" };
   const statusOpt = STATUS_OPTIONS.find((s) => s.value === candidate.status) || STATUS_OPTIONS[0];
 
   // Chart data — supports both old and new analysis formats
-  const radarData = [
-    { dimension: "Sentiment", score: r.sentiment_analysis.score },
+  const radarData = isImported ? [] : [
+    { dimension: "Sentiment", score: r.sentiment_analysis?.score ?? 0 },
     { dimension: "JD Match", score: getRelevance(r) },
     { dimension: "Skills", score: getSkillMatchPct(r) ?? 0 },
     { dimension: "Experience", score: getExperienceScore(r) },
@@ -565,23 +567,27 @@ const CandidateProfile = () => {
 
   const barData = radarData.map((d) => ({ ...d, baseline: 50 }));
 
-  const skillsPieData = [
-    { name: "Technical", value: getTechSkills(r).length },
-    { name: "Soft Skills", value: getSoftSkills(r).length },
-    { name: "Certifications", value: getCerts(r).length },
-  ].filter((d) => d.value > 0);
+  const skillsPieData = isImported
+    ? (r.skills || []).length > 0 ? [{ name: "Skills", value: (r.skills || []).length }] : []
+    : [
+        { name: "Technical", value: getTechSkills(r).length },
+        { name: "Soft Skills", value: getSoftSkills(r).length },
+        { name: "Certifications", value: getCerts(r).length },
+      ].filter((d) => d.value > 0);
 
   const severityCounts = { low: 0, medium: 0, high: 0 };
-  r.red_flags.employment_gaps.forEach((g) => severityCounts[g.severity]++);
-  r.red_flags.inconsistencies.forEach(() => severityCounts.medium++);
-  r.red_flags.vague_descriptions.forEach(() => severityCounts.medium++);
+  if (!isImported && r.red_flags) {
+    (r.red_flags.employment_gaps || []).forEach((g: any) => severityCounts[g.severity as keyof typeof severityCounts]++);
+    (r.red_flags.inconsistencies || []).forEach(() => severityCounts.medium++);
+    (r.red_flags.vague_descriptions || []).forEach(() => severityCounts.medium++);
+  }
   const flagPieData = [
     { name: "Low", value: severityCounts.low, colour: CHART_COLOURS.yellow },
     { name: "Medium", value: severityCounts.medium, colour: CHART_COLOURS.yellow },
     { name: "High", value: severityCounts.high, colour: CHART_COLOURS.red },
   ].filter((d) => d.value > 0);
 
-  const report = generateReport(r);
+  const report = isImported ? (r.profile_summary || `${candidate.candidate_name} was imported via Data Sources.`) : generateReport(r);
 
   // Score gauge
   const radius = 54;
@@ -693,12 +699,15 @@ const CandidateProfile = () => {
           </section>
 
           {/* === IDEAL ROLE FIT === */}
+          {!isImported && (
           <section className="bg-card border border-border p-6">
             <h2 className="text-sm font-semibold text-foreground mb-3 uppercase">Ideal Role Fit</h2>
             <p className="text-sm leading-relaxed text-foreground/80">{generateRoleFit(r)}</p>
           </section>
+          )}
 
           {/* === DATA VISUALISATIONS === */}
+          {!isImported && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Radar Chart */}
             <section className="bg-card border border-border p-6">
@@ -771,8 +780,58 @@ const CandidateProfile = () => {
               )}
             </section>
           </div>
+          )}
+
+          {/* === IMPORTED PROFILE DATA === */}
+          {isImported && (
+            <div className="space-y-6">
+              {(r.skills || []).length > 0 && (
+                <section className="bg-card border border-border p-6">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Skills</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(r.skills as string[]).map((s: string) => (
+                      <Badge key={s} variant="secondary" className="text-[10px] px-2 py-0.5 font-normal pointer-events-none">{s}</Badge>
+                    ))}
+                  </div>
+                </section>
+              )}
+              {(r.experience || []).length > 0 && (
+                <section className="bg-card border border-border p-6">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Experience</h3>
+                  <div className="space-y-3">
+                    {(r.experience as any[]).map((exp: any, i: number) => (
+                      <div key={i} className="text-sm text-foreground/80">
+                        <p className="font-medium">{exp.title}{exp.company ? ` at ${exp.company}` : ''}</p>
+                        {(exp.start || exp.end) && <p className="text-xs text-muted-foreground">{exp.start} – {exp.end || 'Present'}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+              {(r.projects || []).length > 0 && (
+                <section className="bg-card border border-border p-6">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Projects</h3>
+                  <div className="space-y-3">
+                    {(r.projects as any[]).map((p: any, i: number) => (
+                      <div key={i} className="text-sm text-foreground/80">
+                        <p className="font-medium">{p.name}</p>
+                        {p.description && <p className="text-xs text-muted-foreground">{p.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+              {r.source && (
+                <section className="bg-card border border-border p-6">
+                  <h3 className="text-sm font-semibold text-foreground mb-2 uppercase">Source</h3>
+                  <p className="text-sm text-muted-foreground">{r.source}{r.source_url ? ` — ${r.source_url}` : ''}</p>
+                </section>
+              )}
+            </div>
+          )}
 
           {/* === CAREER PROGRESSION === */}
+          {!isImported && (
           <section className="bg-card border border-border p-6">
             <h3 className="text-sm font-semibold text-foreground mb-3 uppercase">Career Progression</h3>
             <div className="flex items-center gap-2 mb-2">
@@ -794,8 +853,10 @@ const CandidateProfile = () => {
               </ul>
             )}
           </section>
+          )}
 
           {/* === SKILLS === */}
+          {!isImported && (
           <section className="bg-card border border-border p-6">
             <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Skills & Certifications</h3>
             <div className="space-y-4">
@@ -831,8 +892,10 @@ const CandidateProfile = () => {
               )}
             </div>
           </section>
+          )}
 
           {/* === RED FLAGS === */}
+          {!isImported && r.red_flags && (
           <section className="bg-card border border-border p-6">
             <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-score-red" />
@@ -842,53 +905,51 @@ const CandidateProfile = () => {
               <p className="text-sm text-muted-foreground">No red flags detected.</p>
             ) : (
               <div className="space-y-3">
-                {r.red_flags.employment_gaps.map((g, i) => (
+                {r.red_flags.employment_gaps.map((g: any, i: number) => (
                   <div key={`gap-${i}`} className="flex items-start gap-3 text-sm">
                     <Badge variant="outline" className={`text-[10px] shrink-0 pointer-events-none ${g.severity === "high" ? "score-badge-red" : "score-badge-yellow"}`}>
                       {g.severity}
                     </Badge>
                     <span className="text-foreground/80">Employment gap: {g.period} ({g.duration_months} months)</span>
                   </div>
-                ))
-                }
-                {r.red_flags.inconsistencies.map((inc, i) => (
+                ))}
+                {r.red_flags.inconsistencies.map((inc: string, i: number) => (
                   <div key={`inc-${i}`} className="flex items-start gap-3 text-sm">
                     <Badge variant="outline" className="text-[10px] shrink-0 pointer-events-none score-badge-yellow">medium</Badge>
                     <span className="text-foreground/80">{inc}</span>
                   </div>
-                ))
-                }
-                {r.red_flags.vague_descriptions.map((v, i) => (
+                ))}
+                {r.red_flags.vague_descriptions.map((v: string, i: number) => (
                   <div key={`vague-${i}`} className="flex items-start gap-3 text-sm">
                     <Badge variant="outline" className="text-[10px] shrink-0 pointer-events-none score-badge-yellow">medium</Badge>
                     <span className="text-foreground/80">{v}</span>
                   </div>
-                ))
-                }
+                ))}
               </div>
             )}
           </section>
+          )}
 
           {/* === IMPROVEMENT SUGGESTIONS === */}
-          {r.overall_score.improvement_suggestions.length > 0 && (
+          {!isImported && r.overall_score?.improvement_suggestions?.length > 0 && (
             <section className="bg-card border border-border p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Lightbulb className="h-4 w-4 text-score-yellow" />
                 SUGGESTIONS
               </h3>
               <ul className="space-y-2">
-                {r.overall_score.improvement_suggestions.map((s, i) => (
+                {r.overall_score.improvement_suggestions.map((s: string, i: number) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
                     <span className="text-muted-foreground mt-0.5">•</span>
                     {s}
                   </li>
-                ))
-                }
+                ))}
               </ul>
             </section>
           )}
 
           {/* === AGENT ECONOMICS === */}
+          {!isImported && r.agent_metrics && (
           <section className="bg-card border border-border p-6">
             <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Agent Economics</h3>
             <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
@@ -897,6 +958,7 @@ const CandidateProfile = () => {
               <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> {r.agent_metrics.estimated_manual_review_minutes} min saved</span>
             </div>
           </section>
+          )}
 
           {/* === CANDIDATE DECISION === */}
           <section className="bg-card border border-border p-6">
