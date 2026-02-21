@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+// Select still used for sort/filter controls
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Users, ArrowUpDown, Download } from "lucide-react";
 import type { AnalysisResult } from "@/types/analysis";
@@ -81,12 +82,6 @@ const Candidates = () => {
     if (error) console.error("Failed to fetch candidates:", error);
   };
 
-  const updateStatus = async (id: string, newStatus: string) => {
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
-    );
-    await supabase.from("candidates").update({ status: newStatus }).eq("id", id);
-  };
 
   const exportCSV = () => {
     const headers = [
@@ -237,25 +232,10 @@ const Candidates = () => {
                       {timeAgo(c.created_at)}
                     </span>
 
-                    {/* Status dropdown */}
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <Select value={c.status} onValueChange={(v) => updateStatus(c.id, v)}>
-                        <SelectTrigger className="w-[160px] h-8 text-xs border-none">
-                          <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
-                            {statusOpt.label}
-                          </Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STATUS_OPTIONS.map((s) => (
-                            <SelectItem key={s.value} value={s.value}>
-                              <Badge className={`text-[10px] px-2 py-0.5 ${s.color} border-0 pointer-events-none`}>
-                                {s.label}
-                              </Badge>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {/* Status pill (read-only) */}
+                    <Badge className={`text-[10px] px-2.5 py-0.5 ${statusOpt.color} border-0 pointer-events-none shrink-0`}>
+                      {statusOpt.label}
+                    </Badge>
                   </div>
                 );
               })}
