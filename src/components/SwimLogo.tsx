@@ -36,11 +36,10 @@ function easeInOut(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
-const SwimLogo = ({ className = "", size = 28, animate = false }: SwimLogoProps) => {
+const SwimLogo = ({ className = "", size = 28 }: Omit<SwimLogoProps, 'animate'>) => {
   const pathRefs = [useRef<SVGPathElement>(null), useRef<SVGPathElement>(null), useRef<SVGPathElement>(null)];
   const rafRef = useRef<number>(0);
   const t0Ref = useRef<number>(0);
-  const activatedRef = useRef(false);
   const rampStartRef = useRef<number>(0);
 
   const tick = useCallback((now: number) => {
@@ -58,19 +57,16 @@ const SwimLogo = ({ className = "", size = 28, animate = false }: SwimLogoProps)
   }, []);
 
   useEffect(() => {
-    if (!animate || activatedRef.current) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    activatedRef.current = true;
     const now = performance.now();
     t0Ref.current = now;
     rampStartRef.current = now;
     rafRef.current = requestAnimationFrame(tick);
-  }, [animate, tick]);
 
-  useEffect(() => {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, []);
+  }, [tick]);
+
 
   return (
     <div

@@ -13,7 +13,6 @@ interface NavbarProps {
 const Navbar = ({ score = null }: NavbarProps) => {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
-  const [logoHovered, setLogoHovered] = useState(false);
 
   return (
     <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0">
@@ -21,10 +20,8 @@ const Navbar = ({ score = null }: NavbarProps) => {
         <Link
           to="/"
           className="flex items-center gap-3 no-underline"
-          onMouseEnter={() => setLogoHovered(true)}
-          onMouseLeave={() => setLogoHovered(false)}
         >
-          <SwimLogo size={28} animate={logoHovered} />
+          <SwimLogo size={28} />
           <div className="flex flex-col leading-tight">
             <span className="font-semibold text-foreground text-lg leading-none">SWIMR</span>
             <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
