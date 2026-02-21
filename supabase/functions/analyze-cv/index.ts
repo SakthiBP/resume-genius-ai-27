@@ -58,7 +58,10 @@ Return this exact JSON structure:
     "institution": "string",
     "degree": "string",
     "course": "string",
-    "gpa_or_grade": "string or null (convert to UK system: First/2:1/2:2/Third if possible)",
+    "gpa_or_grade": "string or null — keep the ORIGINAL format exactly as stated on the CV (e.g. '3.7 GPA', 'First Class Honours', '1.3 German scale', '8.5 CGPA')",
+    "grade_quality_tier": "exceptional|strong|good|average|below_average — normalised quality tier (see GRADE NORMALISATION below)",
+    "qs_ranking_tier": "top_10|top_50|top_100|top_200|top_500|unranked|unknown — based on QS World University Rankings (see EDUCATION SCORING below)",
+    "course_relevance": "highly_relevant|relevant|partially_relevant|not_relevant — relevance of the degree course to the job description",
     "expected_years_to_complete": number,
     "actual_years_taken": "number or null",
     "completed_on_time": "yes|no|unknown",
@@ -142,7 +145,31 @@ Return this exact JSON structure:
 SECTION SCORING RULES:
 job_description_match: Score based on % of required keywords/criteria found. Award full points per keyword matched. Partial credit for adjacent/related terms.
 skills_assessment: Score based on required skills satisfied. Partial credit for transferable or related skills. Bonus points for exceeding requirements.
-education: Score based on: degree completion (on time = full credit), GPA/grade quality, course relevance, and institution prestige relative to any target universities provided. Deduct for incomplete degrees or extended duration.
+education: Score based on TWO primary factors:
+  1. UNIVERSITY PRESTIGE (use QS World University Rankings as benchmark):
+     - QS Top 10 = exceptional (qs_ranking_tier: "top_10")
+     - QS Top 50 = high (qs_ranking_tier: "top_50")
+     - QS Top 100 = good (qs_ranking_tier: "top_100")
+     - QS Top 200 = above average (qs_ranking_tier: "top_200")
+     - QS Top 500 = average (qs_ranking_tier: "top_500")
+     - Unranked = low (qs_ranking_tier: "unranked")
+     Use your knowledge of current QS rankings to assess the institution.
+  2. GRADE QUALITY — accept ALL grading systems worldwide and normalise:
+     - UK: First Class Honours, Upper Second (2:1), Lower Second (2:2), Third Class
+     - US: GPA on 4.0 scale
+     - European: ECTS grades (A-F), percentage systems, German 1.0-5.0 scale (1.0 = best)
+     - Indian: CGPA on 10.0 scale, percentage, First/Second/Third Division
+     - Australian: HD (High Distinction), D (Distinction), C (Credit), P (Pass)
+     - Chinese: percentage out of 100
+     - Any other system — interpret and normalise it
+     GRADE NORMALISATION into grade_quality_tier:
+     - "exceptional": UK First / US 3.8+ / German 1.0-1.3 / Indian 9.0+ / AU HD / CN 90+
+     - "strong": UK 2:1 / US 3.5-3.79 / German 1.4-2.0 / Indian 8.0-8.9 / AU D / CN 80-89
+     - "good": UK 2:2 / US 3.0-3.49 / German 2.1-3.0 / Indian 7.0-7.9 / AU C / CN 70-79
+     - "average": US 2.5-2.99 / German 3.1-3.5 / Indian 6.0-6.9 / AU P / CN 60-69
+     - "below_average": anything below the above thresholds
+     Keep gpa_or_grade in the ORIGINAL format from the CV. The normalised tier goes in grade_quality_tier.
+  Also factor in: degree completion (on time = full credit), course relevance to the role. Deduct for incomplete degrees or extended duration. If target universities are provided in the role, check if the candidate's institution matches any of them.
 work_experience: Score based on: relevance of roles to JD, company prestige, industry experience match, career progression, and employment gap severity. Partial credit for adjacent industries or transferable roles.
 right_to_work: Full score if eligible with no sponsorship needed. Deduct proportionally for uncertainty or sponsorship requirements. Score 0 if clearly ineligible. Flag all cases requiring human verification.
 red_flags: Starts at 100, deduct per flag found. Weight deductions by severity (high = -20, medium = -10, low = -5). Vague descriptions and inconsistencies each deduct 5 points.
