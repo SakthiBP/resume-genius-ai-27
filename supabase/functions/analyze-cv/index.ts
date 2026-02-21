@@ -75,6 +75,14 @@ Examples:
 - Instead of "Improve your CV formatting" →
   "CV formatting is below standard which may indicate lack of attention to detail"
 
+Role-Specific Scoring:
+- If a job description / role is provided, score "relevance_to_role" and
+  "skill_match_percentage" specifically against that role's requirements,
+  required skills list, and job description. These must reflect how well
+  the candidate matches THAT specific role.
+- If NO job description / role is provided, set "relevance_to_role" to 0
+  and "skill_match_percentage" to null — do not guess or fabricate scores.
+
 Scoring: 50=average, 70=good, 85+=exceptional.
 Deduct for vagueness and unquantified claims.
 Reward specific metrics and clear impact statements.`;

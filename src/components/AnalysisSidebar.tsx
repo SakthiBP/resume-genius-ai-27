@@ -8,6 +8,7 @@ interface AnalysisSidebarProps {
   isLoading: boolean;
   hasResults: boolean;
   result: AnalysisResult | null;
+  hasRole: boolean;
 }
 
 function mapResultToInsights(r: AnalysisResult): Insight[] {
@@ -105,7 +106,7 @@ function mapResultToInsights(r: AnalysisResult): Insight[] {
   return insights;
 }
 
-const AnalysisSidebar = ({ isLoading, hasResults, result }: AnalysisSidebarProps) => {
+const AnalysisSidebar = ({ isLoading, hasResults, result, hasRole }: AnalysisSidebarProps) => {
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
@@ -147,8 +148,8 @@ const AnalysisSidebar = ({ isLoading, hasResults, result }: AnalysisSidebarProps
           <h3 className="text-sm font-semibold text-foreground mb-4">Candidate Evaluation</h3>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             <ScoreBar label="Sentiment" score={result.sentiment_analysis.score} delay={100} />
-            <ScoreBar label="Relevance" score={result.usefulness_score.relevance_to_role} delay={200} />
-            <ScoreBar label="Skills Match" score={result.skills_extraction.skill_match_percentage ?? result.usefulness_score.score} delay={300} />
+            <ScoreBar label="Relevance" score={result.usefulness_score.relevance_to_role} delay={200} notApplicable={!hasRole} />
+            <ScoreBar label="Skills Match" score={result.skills_extraction.skill_match_percentage ?? result.usefulness_score.score} delay={300} notApplicable={!hasRole} />
             <ScoreBar label="Experience" score={result.experience_quality.score} delay={400} />
           </div>
         </div>

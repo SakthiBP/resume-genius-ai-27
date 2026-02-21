@@ -4,6 +4,7 @@ interface ScoreBarProps {
   label: string;
   score: number;
   delay?: number;
+  notApplicable?: boolean;
 }
 
 const getBarColor = (score: number) => {
@@ -12,11 +13,16 @@ const getBarColor = (score: number) => {
   return "bg-score-red";
 };
 
-const ScoreBar = ({ label, score, delay = 0 }: ScoreBarProps) => {
+const ScoreBar = ({ label, score, delay = 0, notApplicable = false }: ScoreBarProps) => {
   const [width, setWidth] = useState(0);
   const [displayScore, setDisplayScore] = useState(0);
 
   useEffect(() => {
+    if (notApplicable) {
+      setWidth(0);
+      setDisplayScore(0);
+      return;
+    }
     const timeout = setTimeout(() => {
       setWidth(score);
       const duration = 800;
@@ -36,19 +42,27 @@ const ScoreBar = ({ label, score, delay = 0 }: ScoreBarProps) => {
     }, delay);
 
     return () => clearTimeout(timeout);
-  }, [score, delay]);
+  }, [score, delay, notApplicable]);
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-foreground">{label}</span>
-        <span className="text-xs font-semibold tabular-nums text-foreground">{displayScore}</span>
+        {notApplicable ? (
+          <span className="text-xs text-muted-foreground italic">N/A</span>
+        ) : (
+          <span className="text-xs font-semibold tabular-nums text-foreground">{displayScore}</span>
+        )}
       </div>
       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-700 ease-out ${getBarColor(score)}`}
-          style={{ width: `${width}%` }}
-        />
+        {notApplicable ? (
+          <div className="h-full w-full bg-muted" />
+        ) : (
+          <div
+            className={`h-full rounded-full transition-all duration-700 ease-out ${getBarColor(score)}`}
+            style={{ width: `${width}%` }}
+          />
+        )}
       </div>
     </div>
   );
