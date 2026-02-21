@@ -44,7 +44,7 @@ import {
   Pie,
   Cell,
   Legend,
-  Tooltip,
+  Tooltip as RechartsTooltip,
 } from "recharts";
 import {
   ChartContainer,
@@ -52,6 +52,26 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import type { AnalysisResult } from "@/types/analysis";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface SavedRole {
+  id: string;
+  job_title: string;
+  description: string;
+  target_universities: { name: string; required_gpa: number }[];
+  required_skills: string[];
+}
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending", color: "score-badge-muted" },
@@ -234,6 +254,24 @@ const CandidateProfile = () => {
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(true);
   const [reanalysing, setReanalysing] = useState(false);
+  const [roles, setRoles] = useState<SavedRole[]>([]);
+  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const { data } = await supabase.from("roles").select("id, job_title, description, target_universities, required_skills").order("job_title");
+      if (data) {
+        setRoles(
+          data.map((r: any) => ({
+            ...r,
+            target_universities: Array.isArray(r.target_universities) ? r.target_universities : [],
+            required_skills: Array.isArray(r.required_skills) ? r.required_skills : [],
+          }))
+        );
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const updateStatus = async (newStatus: string) => {
     if (!candidate) return;
@@ -260,14 +298,14 @@ const CandidateProfile = () => {
     })();
   }, [id]);
 
-  const reanalyse = async () => {
+  const runAnalysis = async (jobContext: string | null) => {
     if (!candidate) return;
     setReanalysing(true);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-cv", {
         body: {
           cv_text: candidate.cv_text,
-          job_description: candidate.job_description || null,
+          job_description: jobContext,
         },
       });
       if (error) throw error;
@@ -281,6 +319,7 @@ const CandidateProfile = () => {
           recommendation: data.overall_score?.recommendation ?? "maybe",
           candidate_name: data.candidate_name || candidate.candidate_name,
           email: data.email || candidate.email,
+          job_description: jobContext,
         })
         .eq("id", candidate.id);
 
@@ -293,6 +332,7 @@ const CandidateProfile = () => {
               recommendation: data.overall_score?.recommendation ?? "maybe",
               candidate_name: data.candidate_name || prev.candidate_name,
               email: data.email || prev.email,
+              job_description: jobContext,
             }
           : prev
       );
@@ -302,6 +342,38 @@ const CandidateProfile = () => {
     } finally {
       setReanalysing(false);
     }
+  };
+
+  const reanalyse = () => runAnalysis(candidate?.job_description || null);
+
+  const handleRoleSwitch = (roleId: string | null) => {
+    setSelectedRoleId(roleId);
+    if (!candidate) return;
+
+    if (!roleId) {
+      runAnalysis(null);
+      return;
+    }
+
+    const role = roles.find((r) => r.id === roleId);
+    if (!role) return;
+
+    const roleParts = [
+      `Job Title: ${role.job_title}`,
+      role.description ? `Job Description: ${role.description}` : "",
+      role.required_skills.length > 0
+        ? `Required Skills: ${role.required_skills.join(", ")}`
+        : "",
+      role.target_universities.length > 0
+        ? `Target Universities: ${role.target_universities
+            .map((u) => `${u.name} (min GPA: ${u.required_gpa})`)
+            .join(", ")}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    runAnalysis(roleParts);
   };
 
   if (loading) {
@@ -414,9 +486,56 @@ const CandidateProfile = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {/* Role switcher */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="h-8 px-3 text-xs font-medium border border-border bg-secondary text-secondary-foreground flex items-center gap-1.5 hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer max-w-[220px]"
+                      disabled={reanalysing}
+                    >
+                      <Briefcase className="h-3 w-3 shrink-0" />
+                      <span className="truncate">
+                        {reanalysing ? "Analysing…" : selectedRoleId ? roles.find((r) => r.id === selectedRoleId)?.job_title ?? "Analyse for Role" : "Analyse for Role"}
+                      </span>
+                      <ChevronDown className="h-3 w-3 shrink-0" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto z-50 bg-popover">
+                    <DropdownMenuItem onClick={() => handleRoleSwitch(null)}>
+                      <span className="text-muted-foreground">No Role (General Evaluation)</span>
+                    </DropdownMenuItem>
+                    {roles.map((role) => (
+                      <Tooltip key={role.id}>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuItem onClick={() => handleRoleSwitch(role.id)}>
+                            <span className="truncate max-w-[200px] block">{role.job_title}</span>
+                          </DropdownMenuItem>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{role.job_title}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
+
+          {/* Reanalysis loading overlay */}
+          {reanalysing && (
+            <div className="bg-card border border-border p-8 flex flex-col items-center justify-center gap-3">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground uppercase tracking-wide">Re-analysing candidate for new role…</p>
+              <div className="w-full max-w-md space-y-3 mt-2">
+                <Skeleton className="h-4 w-3/4 mx-auto" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6 mx-auto" />
+              </div>
+            </div>
+          )}
+
+          <div className={reanalysing ? "opacity-30 pointer-events-none transition-opacity duration-300 space-y-8" : "transition-opacity duration-300 space-y-8"}>
 
           {/* === REPORT SUMMARY === */}
           <section className="bg-card border border-border p-6">
@@ -644,6 +763,7 @@ const CandidateProfile = () => {
               )}
             </Button>
           </div>
+          </div>{/* close reanalysing wrapper */}
         </div>
       </div>
     </div>
