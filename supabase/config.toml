@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.import-profile]
 verify_jwt = false
+
+[functions.github-recommend]
+verify_jwt = false
