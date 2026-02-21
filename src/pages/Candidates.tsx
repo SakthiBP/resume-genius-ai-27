@@ -30,11 +30,11 @@ interface Candidate {
 }
 
 const STATUS_OPTIONS = [
-  { value: "pending", label: "Pending", color: "score-badge-muted" },
-  { value: "deny", label: "Denied", color: "score-badge-red" },
-  { value: "online_assessment", label: "OA Scheduled", color: "score-badge-yellow" },
-  { value: "interview", label: "Interview Scheduled", color: "score-badge-blue" },
-  { value: "hire", label: "Hired", color: "score-badge-green" },
+  { value: "pending", label: "Pending", color: "bg-gray-400/20 text-gray-600 dark:bg-gray-500/20 dark:text-gray-300" },
+  { value: "deny", label: "Denied", color: "bg-red-500 text-white" },
+  { value: "online_assessment", label: "OA Scheduled", color: "bg-amber-500 text-gray-900" },
+  { value: "interview", label: "Interview Scheduled", color: "bg-blue-500 text-white" },
+  { value: "hire", label: "Hired", color: "bg-green-500 text-white" },
 ];
 
 function getScoreBadgeClasses(score: number) {
