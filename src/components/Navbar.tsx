@@ -17,7 +17,7 @@ const Navbar = ({ score }: NavbarProps) => {
       <div className="flex items-center gap-3 min-w-[200px]">
         <SwimLogo size={28} />
         <div className="flex flex-col leading-tight">
-          <span className="font-semibold text-foreground text-lg leading-none">Swim</span>
+          <span className="font-semibold text-foreground text-lg leading-none">SWIM</span>
           <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
         </div>
       </div>

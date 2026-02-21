@@ -111,7 +111,7 @@ const Candidates = () => {
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <Users className="h-6 w-6 text-muted-foreground" />
-            <h1 className="text-2xl font-bold text-foreground">Candidate Pipeline</h1>
+            <h1 className="text-2xl font-bold text-foreground uppercase">Candidate Pipeline</h1>
             <Badge variant="secondary" className="text-xs">{candidates.length}</Badge>
           </div>
 

@@ -87,10 +87,17 @@ const DocumentPanel = ({
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
-                Select Role
-                <ChevronDown className="h-3 w-3" />
-              </Button>
+              {selectedRole ? (
+                <button className="h-8 px-3 text-xs font-medium border border-border bg-secondary text-secondary-foreground flex items-center gap-1.5 hover:bg-accent hover:text-accent-foreground transition-colors duration-200 cursor-pointer">
+                  {selectedRole.job_title}
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              ) : (
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
+                  Select Role
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onSelectedRoleChange(null)}>
@@ -103,14 +110,6 @@ const DocumentPanel = ({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          {selectedRole && (
-            <Badge variant="secondary" className="gap-1 text-xs pr-1">
-              {selectedRole.job_title}
-              <button onClick={() => onSelectedRoleChange(null)} className="ml-0.5 rounded-full hover:bg-muted p-0.5">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          )}
           <Button
             size="sm"
             onClick={onAnalyze}
