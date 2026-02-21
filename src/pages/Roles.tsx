@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, X, GraduationCap } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import WavesLoader from "@/components/WavesLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -221,7 +222,7 @@ const Roles = () => {
           </div>
 
           {loading ? (
-            <div className="text-sm text-muted-foreground">Loading roles…</div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground"><WavesLoader size="sm" /> Loading roles…</div>
           ) : roles.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">

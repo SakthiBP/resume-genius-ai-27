@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import Navbar from "@/components/Navbar";
+import WavesLoader from "@/components/WavesLoader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -221,7 +222,7 @@ const ROIDashboard = () => {
       <div className="h-screen flex flex-col bg-background">
         <Navbar score={null} />
         <div className="flex-1 flex items-center justify-center">
-          <Activity className="h-8 w-8 animate-spin text-muted-foreground" />
+          <WavesLoader size="lg" />
         </div>
       </div>
     );

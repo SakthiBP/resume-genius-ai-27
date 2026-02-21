@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { FileText, RefreshCw, Loader2, ChevronDown } from "lucide-react";
+import { FileText, RefreshCw, ChevronDown } from "lucide-react";
+import WavesLoader from "@/components/WavesLoader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -145,7 +146,7 @@ const DocumentPanel = ({
           >
             {isAnalyzing ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <WavesLoader size="sm" className="text-primary-foreground" />
                 Analysing…
               </>
             ) : (
