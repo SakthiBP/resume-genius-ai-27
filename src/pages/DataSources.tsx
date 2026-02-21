@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Upload, FileText, Github, Globe, History, ArrowRight, AlertTriangle, ExternalLink, Trash2, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Upload, FileText, Github, Globe, History, ArrowRight, AlertTriangle, ExternalLink, Trash2, CheckCircle2, XCircle, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import WavesLoader from "@/components/WavesLoader";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 type TabId = "upload" | "github" | "website" | "history";
 
@@ -51,6 +51,7 @@ async function extractTextFromFile(file: File): Promise<string> {
 
 export default function DataSources() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>("upload");
 
   // Upload state
@@ -107,7 +108,15 @@ export default function DataSources() {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
 
-      toast({ title: "CV imported", description: `Profile for ${data.profile?.full_name || "candidate"} created.` });
+      toast({
+        title: "Candidate added to pipeline",
+        description: `${data.profile?.full_name || "Candidate"} imported successfully.`,
+        action: data.candidate?.id ? (
+          <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/candidates/${data.candidate.id}`)}>
+            <Users className="h-3 w-3" /> View Candidate
+          </Button>
+        ) : undefined,
+      });
       setSelectedFile(null);
     } catch (err: any) {
       toast({ title: "Import failed", description: err.message, variant: "destructive" });
@@ -127,7 +136,15 @@ export default function DataSources() {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
 
-      toast({ title: "CV imported", description: `Profile for ${data.profile?.full_name || "candidate"} created.` });
+      toast({
+        title: "Candidate added to pipeline",
+        description: `${data.profile?.full_name || "Candidate"} imported successfully.`,
+        action: data.candidate?.id ? (
+          <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/candidates/${data.candidate.id}`)}>
+            <Users className="h-3 w-3" /> View Candidate
+          </Button>
+        ) : undefined,
+      });
       setPastedText("");
       setPasteMode(false);
     } catch (err: any) {
@@ -148,7 +165,15 @@ export default function DataSources() {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
 
-      toast({ title: "GitHub profile imported", description: `${data.profile?.full_name || "Profile"} created from GitHub.` });
+      toast({
+        title: "Candidate added to pipeline",
+        description: `${data.profile?.full_name || "Candidate"} imported from GitHub.`,
+        action: data.candidate?.id ? (
+          <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/candidates/${data.candidate.id}`)}>
+            <Users className="h-3 w-3" /> View Candidate
+          </Button>
+        ) : undefined,
+      });
       setGithubInput("");
     } catch (err: any) {
       toast({ title: "Import failed", description: err.message, variant: "destructive" });
@@ -168,7 +193,15 @@ export default function DataSources() {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
 
-      toast({ title: "Website imported", description: `Profile for ${data.profile?.full_name || "candidate"} created.` });
+      toast({
+        title: "Candidate added to pipeline",
+        description: `${data.profile?.full_name || "Candidate"} imported from website.`,
+        action: data.candidate?.id ? (
+          <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => navigate(`/candidates/${data.candidate.id}`)}>
+            <Users className="h-3 w-3" /> View Candidate
+          </Button>
+        ) : undefined,
+      });
       setWebsiteUrl("");
     } catch (err: any) {
       toast({ title: "Import failed", description: err.message, variant: "destructive" });

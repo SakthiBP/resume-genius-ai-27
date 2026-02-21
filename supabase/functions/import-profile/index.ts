@@ -74,6 +74,62 @@ Use null for unknown fields, empty arrays for missing lists.`
   return JSON.parse(match[1].trim());
 }
 
+async function createCandidate(profile: any) {
+  // Check if candidate already exists for this external profile
+  const existing = await fetch(
+    `${SUPABASE_URL}/rest/v1/candidates?external_candidate_id=eq.${profile.id}&select=id`,
+    {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+      },
+    }
+  );
+  const existingData = await existing.json();
+  if (existingData && existingData.length > 0) {
+    // Update existing candidate
+    const [updated] = await supaRest(`candidates?id=eq.${existingData[0].id}`, 'PATCH', {
+      candidate_name: profile.full_name || 'Unknown',
+      email: profile.email || null,
+      source: 'data_sources',
+    });
+    return existingData[0];
+  }
+
+  // Create new candidate
+  const summaryText = [
+    profile.full_name,
+    profile.headline,
+    profile.profile_summary,
+    `Skills: ${(profile.skills || []).join(', ')}`,
+  ].filter(Boolean).join('. ');
+
+  const [candidate] = await supaRest('candidates', 'POST', {
+    candidate_name: profile.full_name || 'Unknown',
+    email: profile.email || null,
+    source: 'data_sources',
+    cv_text: profile.raw_text || summaryText || 'Imported from data sources',
+    overall_score: 0,
+    recommendation: 'pending',
+    status: 'imported',
+    analysis_json: {
+      source: profile.source,
+      source_url: profile.source_url,
+      profile_summary: profile.profile_summary,
+      skills: profile.skills || [],
+      experience: profile.experience || [],
+      education: profile.education || [],
+      projects: profile.projects || [],
+      headline: profile.headline,
+      location: profile.location,
+      links: profile.links || {},
+    },
+    external_candidate_id: null,
+    job_description: null,
+  });
+  return candidate;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -134,7 +190,10 @@ Deno.serve(async (req) => {
           status: 'ready',
         });
 
-        return new Response(JSON.stringify({ success: true, profile, import: importRec }), {
+        // Auto-create candidate
+        const candidate = await createCandidate(profile);
+
+        return new Response(JSON.stringify({ success: true, profile, candidate, import: importRec }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (err) {
@@ -227,7 +286,10 @@ Deno.serve(async (req) => {
           status: 'ready',
         });
 
-        return new Response(JSON.stringify({ success: true, profile, import: importRec }), {
+        // Auto-create candidate
+        const candidate = await createCandidate(profile);
+
+        return new Response(JSON.stringify({ success: true, profile, candidate, import: importRec }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (err) {
@@ -324,7 +386,10 @@ Deno.serve(async (req) => {
           status: 'ready',
         });
 
-        return new Response(JSON.stringify({ success: true, profile, import: importRec }), {
+        // Auto-create candidate
+        const candidate = await createCandidate(profile);
+
+        return new Response(JSON.stringify({ success: true, profile, candidate, import: importRec }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       } catch (err) {
