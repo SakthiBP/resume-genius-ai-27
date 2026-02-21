@@ -303,7 +303,9 @@ const CandidateProfile = () => {
     setCandidate((prev) => prev ? { ...prev, status } : prev);
 
     // Generate email template with role & feedback context
-    const roleTitle = candidate.job_description ? candidate.job_description.split("\n")[0].replace("Job Title: ", "") : undefined;
+    const selectedRole = selectedRoleId ? roles.find((r) => r.id === selectedRoleId) : null;
+    const roleTitle = selectedRole?.job_title
+      || (candidate.job_description ? candidate.job_description.split("\n")[0].replace("Job Title: ", "") : undefined);
     const analysis = candidate.analysis_json as any;
     const improvementSuggestions = analysis?.overall_score?.improvement_suggestions as string[] | undefined;
     const recommendation = analysis?.overall_score?.recommendation as string | undefined;
