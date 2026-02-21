@@ -93,10 +93,10 @@ function getManualMins(aj: any) {
   return aj?.agent_metrics?.estimated_manual_review_minutes ?? 20;
 }
 
-const HUMAN_HOURLY_RATE = 10.50; // £/hr for manual screening
+const HUMAN_HOURLY_RATE = 8.30; // £/hr for manual screening (≈$10.50 × 0.79)
 
-function fmt$(v: number, d = 2) {
-  return `$${v.toFixed(d)}`;
+function fmtGBP(v: number, d = 2) {
+  return `£${v.toFixed(d)}`;
 }
 
 function fmtNum(v: number) {
@@ -247,8 +247,8 @@ const ROIDashboard = () => {
           {/* ── Hero Metric Cards ─────────────────────── */}
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
             <MetricCard icon={<FileText className="h-4 w-4" />} label="CVs Analysed" value={fmtNum(animCVs)} delay={0} />
-            <MetricCard icon={<DollarSign className="h-4 w-4" />} label="Total Value Saved" value={fmt$(animSaved)} accent delay={1} />
-            <MetricCard icon={<Zap className="h-4 w-4" />} label="Total AI Spend" value={fmt$(animAiCost, 4)} delay={2} />
+            <MetricCard icon={<DollarSign className="h-4 w-4" />} label="Total Value Saved" value={fmtGBP(animSaved)} accent delay={1} />
+            <MetricCard icon={<Zap className="h-4 w-4" />} label="Total AI Spend" value={fmtGBP(animAiCost, 4)} delay={2} />
             <MetricCard icon={<Clock className="h-4 w-4" />} label="Human Hours Saved" value={`${animHrs}h`} delay={3} />
             <MetricCard icon={<Cpu className="h-4 w-4" />} label="Tokens Consumed" value={fmtNum(animTokens)} delay={4} />
             <MetricCard icon={<TrendingUp className="h-4 w-4" />} label="Cost Reduction" value={`${animReduction}%`} accent delay={5} />
@@ -266,7 +266,7 @@ const ROIDashboard = () => {
                     <BarChart data={transactionData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
                       <XAxis dataKey="name" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-                      <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `$${v}`} />
+                      <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `£${v}`} />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="humanCost" name="Human Cost" fill="hsl(var(--score-red))" fillOpacity={0.7} radius={[2, 2, 0, 0]} />
                       <Bar dataKey="aiCost" name="AI Cost" fill="hsl(var(--score-purple))" radius={[2, 2, 0, 0]} />
@@ -316,8 +316,8 @@ const ROIDashboard = () => {
                   <Users className="h-5 w-5 text-muted-foreground" />
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Human Review</span>
                   <span className="text-2xl font-bold text-foreground font-mono">~20 min</span>
-                  <span className="text-lg font-semibold text-foreground font-mono">$3.50</span>
-                  <span className="text-[10px] text-muted-foreground">@ ${HUMAN_HOURLY_RATE}/hr</span>
+                  <span className="text-lg font-semibold text-foreground font-mono">£2.77</span>
+                  <span className="text-[10px] text-muted-foreground">@ £{HUMAN_HOURLY_RATE}/hr</span>
                 </CardContent>
               </Card>
               <Card className="border border-border bg-card flex items-center justify-center">
@@ -326,9 +326,9 @@ const ROIDashboard = () => {
                     {metrics.costReduction.toFixed(1)}% Reduction
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="font-mono">$3.50</span>
+                    <span className="font-mono">£2.77</span>
                     <ArrowRight className="h-3.5 w-3.5" />
-                    <span className="font-mono text-score-green">{fmt$(metrics.avgCostPerCV, 4)}</span>
+                    <span className="font-mono text-score-green">{fmtGBP(metrics.avgCostPerCV, 4)}</span>
                   </div>
                   <span className="text-[10px] text-muted-foreground">per CV average</span>
                 </CardContent>
@@ -338,7 +338,7 @@ const ROIDashboard = () => {
                   <Zap className="h-5 w-5 text-score-purple" />
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">AI Agent Review</span>
                   <span className="text-2xl font-bold text-foreground font-mono">{metrics.avgTimePerCV.toFixed(1)}s</span>
-                  <span className="text-lg font-semibold text-foreground font-mono">{fmt$(metrics.avgCostPerCV, 4)}</span>
+                  <span className="text-lg font-semibold text-foreground font-mono">{fmtGBP(metrics.avgCostPerCV, 4)}</span>
                   <span className="text-[10px] text-muted-foreground">actual avg from {metrics.totalCVs} analyses</span>
                 </CardContent>
               </Card>
@@ -370,9 +370,9 @@ const ROIDashboard = () => {
                 <span className="text-xs text-muted-foreground">10,000</span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <MiniStat label="Human Cost" value={fmt$(projected.humanCost)} colour="text-score-red" />
-                <MiniStat label="AI Cost" value={fmt$(projected.aiCost, 2)} colour="text-score-purple" />
-                <MiniStat label="Net Savings" value={fmt$(projected.saved)} colour="text-score-green" />
+                <MiniStat label="Human Cost" value={fmtGBP(projected.humanCost)} colour="text-score-red" />
+                <MiniStat label="AI Cost" value={fmtGBP(projected.aiCost, 2)} colour="text-score-purple" />
+                <MiniStat label="Net Savings" value={fmtGBP(projected.saved)} colour="text-score-green" />
                 <MiniStat label="Time Saved" value={`${projected.timeSavedHrs.toFixed(0)}h`} colour="text-score-blue" />
               </div>
             </CardContent>
@@ -424,8 +424,8 @@ const ROIDashboard = () => {
                         </Badge>
                       </span>
                       <span className="col-span-2 text-right font-mono text-muted-foreground">{fmtNum(tu.total)}</span>
-                      <span className="col-span-2 text-right font-mono text-score-purple">{fmt$(tu.cost, 4)}</span>
-                      <span className="col-span-2 text-right font-mono text-score-red">{fmt$(humanCost)}</span>
+                      <span className="col-span-2 text-right font-mono text-score-purple">{fmtGBP(tu.cost, 4)}</span>
+                      <span className="col-span-2 text-right font-mono text-score-red">{fmtGBP(humanCost)}</span>
                       <span className="col-span-1 text-right font-mono text-muted-foreground">{procTime.toFixed(1)}s</span>
                       <span className="col-span-1 text-right">
                         {isExpanded ? <ChevronUp className="h-3.5 w-3.5 inline text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 inline text-muted-foreground" />}
@@ -439,7 +439,7 @@ const ROIDashboard = () => {
                           <MiniStat label="Input Tokens" value={fmtNum(tu.input)} colour="text-score-blue" />
                           <MiniStat label="Output Tokens" value={fmtNum(tu.output)} colour="text-score-purple" />
                           <MiniStat label="Est. Manual Time" value={`${manMins} min`} colour="text-score-red" />
-                          <MiniStat label="Value Created" value={fmt$(humanCost - tu.cost)} colour="text-score-green" />
+                          <MiniStat label="Value Created" value={fmtGBP(humanCost - tu.cost)} colour="text-score-green" />
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           <div className="text-xs">
@@ -498,7 +498,7 @@ const ROIDashboard = () => {
                   >
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border/40" />
                     <XAxis dataKey="index" tick={{ fontSize: 11 }} className="fill-muted-foreground" label={{ value: "Analyses", position: "insideBottom", offset: -2, fontSize: 10, className: "fill-muted-foreground" }} />
-                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `$${v}`} />
+                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `£${v}`} />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Area type="monotone" dataKey="saved" name="Cumulative Saved" stroke="hsl(var(--score-green))" fill="hsl(var(--score-green))" fillOpacity={0.15} strokeWidth={2} />
                   </AreaChart>
@@ -510,7 +510,7 @@ const ROIDashboard = () => {
           {/* ── Bottom Summary ────────────────────────── */}
           <div className="animate-fade-in-up text-center pb-12" style={{ animationDelay: "0.45s" }}>
             <p className="text-xs text-muted-foreground">
-              All figures derived from live agent transaction data. Token costs calculated using actual API pricing. Human benchmark: {HUMAN_HOURLY_RATE} $/hr × estimated review minutes per CV.
+              All figures derived from live agent transaction data. Token costs calculated using actual API pricing converted to GBP (×0.79). Human benchmark: £{HUMAN_HOURLY_RATE}/hr × estimated review minutes per CV.
             </p>
           </div>
         </div>
