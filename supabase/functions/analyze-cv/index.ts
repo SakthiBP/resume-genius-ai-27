@@ -98,7 +98,11 @@ serve(async (req) => {
       throw new Error("CLAUDE_API_KEY is not configured");
     }
 
-    const { cv_text, job_description } = await req.json();
+    const body = await req.json();
+    const { cv_text, job_description } = body;
+
+    console.log("Incoming request body keys:", Object.keys(body));
+    console.log("job_description received:", job_description ? job_description.substring(0, 200) + "..." : "NONE");
 
     if (!cv_text || cv_text.length < 20) {
       return new Response(
@@ -109,7 +113,12 @@ serve(async (req) => {
 
     const startTime = Date.now();
 
-    const originalUserMessage = `Analyse this CV:\n\n<cv_text>\n${cv_text}\n</cv_text>\n\n<job_description>\n${job_description || 'General evaluation'}\n</job_description>\n\nReturn ONLY valid JSON.`;
+    let originalUserMessage: string;
+    if (job_description) {
+      originalUserMessage = `Analyse this CV for the following role:\n\n${job_description}\n\n<cv_text>\n${cv_text}\n</cv_text>\n\nEvaluate relevance_to_role and skill_match_percentage specifically against this role's requirements. Return ONLY valid JSON.`;
+    } else {
+      originalUserMessage = `Analyse this CV as a general professional evaluation (no specific role selected):\n\n<cv_text>\n${cv_text}\n</cv_text>\n\nSince no role is specified, set relevance_to_role to 0 and skill_match_percentage to null. Return ONLY valid JSON.`;
+    }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
