@@ -41,8 +41,8 @@ const ConfirmationModal = ({
             onClick={onConfirm}
             className={
               confirmVariant === "destructive"
-                ? "bg-red-600 hover:bg-red-700 text-white"
-                : "bg-green-600 hover:bg-green-700 text-white"
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                : "bg-score-green text-destructive-foreground hover:bg-score-green/90"
             }
           >
             {confirmLabel}

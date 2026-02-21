@@ -39,7 +39,7 @@ const OverallScoreBadge = ({ score }: OverallScoreBadgeProps) => {
 
   return (
     <div
-      className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors duration-300"
+      className="inline-flex items-center gap-2.5 px-4 py-1.5 text-sm font-semibold transition-colors duration-300"
       style={{ backgroundColor: colors.bg, borderWidth: 1, borderStyle: "solid", borderColor: colors.border }}
     >
       <svg width="28" height="28" viewBox="0 0 28 28" className="-ml-0.5">

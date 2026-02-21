@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle, Mail, RotateCcw, Send, X } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import WavesLoader from "@/components/WavesLoader";
 
 interface EmailPreviewModalProps {
   open: boolean;
@@ -153,7 +153,7 @@ const EmailPreviewModal = ({
 
           {/* Warning */}
           <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 p-3 border border-border">
-            <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-500" />
+            <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0 text-score-yellow" />
             <span>
               Edits made here apply to this send only. They will not affect the
               default template.
@@ -209,10 +209,10 @@ const EmailPreviewModal = ({
               type="button"
               onClick={handleSend}
               disabled={sending || !subject.trim() || !body.trim()}
-              className="gap-2 ml-auto bg-green-600 hover:bg-green-700 text-white"
+              className="gap-2 ml-auto bg-score-green text-destructive-foreground hover:bg-score-green/90"
             >
               {sending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <WavesLoader size="sm" className="text-destructive-foreground" />
               ) : (
                 <Send className="h-4 w-4" />
               )}

@@ -299,8 +299,8 @@ const ROIDashboard = () => {
                   <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">No data</div>
                 )}
                 <div className="flex justify-center gap-6 mt-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-score-blue" /> Input: {fmtNum(metrics.totalTokensIn)}</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-score-purple" /> Output: {fmtNum(metrics.totalTokensOut)}</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-score-blue" /> Input: {fmtNum(metrics.totalTokensIn)}</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-score-purple" /> Output: {fmtNum(metrics.totalTokensOut)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -323,7 +323,7 @@ const ROIDashboard = () => {
               </Card>
               <Card className="border border-border bg-card flex items-center justify-center">
                 <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                  <div className="score-badge-green text-base px-4 py-1.5 font-bold border inline-flex items-center rounded-full">
+                  <div className="score-badge-green text-base px-4 py-1.5 font-bold border inline-flex items-center">
                     {metrics.costReduction.toFixed(1)}% Reduction
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">

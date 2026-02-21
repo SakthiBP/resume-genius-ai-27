@@ -60,12 +60,12 @@ const ScoreBar = ({ label, score, delay = 0, notApplicable = false, weightLabel 
           <span className="text-xs font-semibold tabular-nums text-foreground">{displayScore}</span>
         )}
       </div>
-      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+      <div className="h-1.5 bg-muted overflow-hidden">
         {notApplicable ? (
           <div className="h-full w-full bg-muted" />
         ) : (
           <div
-            className={`h-full rounded-full transition-all duration-700 ease-out ${getBarColor(score)}`}
+            className={`h-full transition-all duration-700 ease-out ${getBarColor(score)}`}
             style={{ width: `${width}%` }}
           />
         )}

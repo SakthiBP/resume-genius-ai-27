@@ -72,19 +72,19 @@ interface SavedRole {
 }
 
 const STATUS_OPTIONS = [
-  { value: "pending", label: "Pending", color: "!bg-gray-400/20 !text-gray-600 dark:!bg-gray-500/20 dark:!text-gray-300" },
-  { value: "deny", label: "Denied", color: "!bg-red-500 !text-white" },
-  { value: "online_assessment", label: "OA Scheduled", color: "!bg-amber-500 !text-gray-900" },
-  { value: "interview", label: "Interview Scheduled", color: "!bg-blue-500 !text-white" },
-  { value: "hire", label: "Hired", color: "!bg-green-500 !text-white" },
+  { value: "pending", label: "Pending", color: "score-badge-muted" },
+  { value: "deny", label: "Denied", color: "bg-score-red text-destructive-foreground" },
+  { value: "online_assessment", label: "OA Scheduled", color: "bg-score-yellow text-foreground" },
+  { value: "interview", label: "Interview Scheduled", color: "bg-score-blue text-destructive-foreground" },
+  { value: "hire", label: "Hired", color: "bg-score-green text-destructive-foreground" },
 ];
 
 const REC_LABELS: Record<string, { label: string; color: string }> = {
-  strong_yes: { label: "Strong Yes", color: "bg-green-700 text-white" },
-  yes: { label: "Yes", color: "bg-green-500 text-white" },
-  maybe: { label: "Maybe", color: "bg-amber-500 text-white" },
-  no: { label: "No", color: "bg-red-500 text-white" },
-  strong_no: { label: "Strong No", color: "bg-red-800 text-white" },
+  strong_yes: { label: "Strong Yes", color: "score-badge-green" },
+  yes: { label: "Yes", color: "score-badge-green" },
+  maybe: { label: "Maybe", color: "score-badge-yellow" },
+  no: { label: "No", color: "score-badge-red" },
+  strong_no: { label: "Strong No", color: "score-badge-red" },
 };
 
 const CHART_COLOURS = {
@@ -907,8 +907,8 @@ const CandidateProfile = () => {
                 onClick={() => updateStatus("hire")}
                 className={`gap-2 text-sm font-semibold px-6 py-2.5 transition-all duration-200 ${
                   candidate.status === "hire"
-                    ? "bg-green-600 hover:bg-green-700 text-white ring-2 ring-green-400 ring-offset-2 ring-offset-background"
-                    : "bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white border border-green-600/40"
+                    ? "bg-score-green text-destructive-foreground ring-2 ring-score-green/60 ring-offset-2 ring-offset-background"
+                    : "bg-score-green/15 hover:bg-score-green text-score-green hover:text-destructive-foreground border border-score-green/40"
                 }`}
               >
                 <Award className="h-4 w-4" />
@@ -918,8 +918,8 @@ const CandidateProfile = () => {
                 onClick={() => updateStatus("deny")}
                 className={`gap-2 text-sm font-semibold px-6 py-2.5 transition-all duration-200 ${
                   candidate.status === "deny"
-                    ? "bg-red-600 hover:bg-red-700 text-white ring-2 ring-red-400 ring-offset-2 ring-offset-background"
-                    : "bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-600/40"
+                    ? "bg-destructive text-destructive-foreground ring-2 ring-destructive/60 ring-offset-2 ring-offset-background"
+                    : "bg-score-red/15 hover:bg-destructive text-score-red hover:text-destructive-foreground border border-score-red/40"
                 }`}
               >
                 <AlertTriangle className="h-4 w-4" />
@@ -929,8 +929,8 @@ const CandidateProfile = () => {
                 onClick={() => updateStatus("interview")}
                 className={`gap-2 text-sm font-semibold px-6 py-2.5 transition-all duration-200 ${
                   candidate.status === "interview"
-                    ? "bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-background"
-                    : "bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-600/40"
+                    ? "bg-score-blue text-destructive-foreground ring-2 ring-score-blue/60 ring-offset-2 ring-offset-background"
+                    : "bg-score-blue/15 hover:bg-score-blue text-score-blue hover:text-destructive-foreground border border-score-blue/40"
                 }`}
               >
                 <Mail className="h-4 w-4" />
@@ -940,8 +940,8 @@ const CandidateProfile = () => {
                 onClick={() => updateStatus("online_assessment")}
                 className={`gap-2 text-sm font-semibold px-6 py-2.5 transition-all duration-200 ${
                   candidate.status === "online_assessment"
-                    ? "bg-amber-500 hover:bg-amber-600 text-white ring-2 ring-amber-400 ring-offset-2 ring-offset-background"
-                    : "bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/40"
+                    ? "bg-score-yellow text-foreground ring-2 ring-score-yellow/60 ring-offset-2 ring-offset-background"
+                    : "bg-score-yellow/15 hover:bg-score-yellow text-score-yellow hover:text-foreground border border-score-yellow/40"
                 }`}
               >
                 <FileText className="h-4 w-4" />
@@ -1000,7 +1000,7 @@ const CandidateProfile = () => {
       {/* Sticky Delete Button */}
       <Button
         variant="destructive"
-        className="fixed bottom-6 right-6 z-50 gap-2 bg-red-800 hover:bg-red-900 shadow-lg"
+        className="fixed bottom-6 right-6 z-50 gap-2 shadow-lg"
         onClick={() => setShowDeleteConfirm(true)}
         disabled={deleting}
       >
