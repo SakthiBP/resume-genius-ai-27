@@ -165,16 +165,14 @@ const Candidates = () => {
                 return (
                   <div
                     key={c.id}
-                    className="flex items-center gap-4 p-4 rounded-lg border border-border bg-card hover:bg-accent/40 transition-colors duration-200"
+                    onClick={() => navigate(`/candidates/${c.id}`)}
+                    className="flex items-center gap-4 p-4 rounded-lg border border-border bg-card hover:bg-accent/40 transition-colors duration-200 cursor-pointer"
                   >
                     {/* Name & email */}
                     <div className="flex-1 min-w-0">
-                      <button
-                        onClick={() => navigate(`/candidates/${c.id}`)}
-                        className="text-sm font-semibold text-foreground hover:underline truncate text-left"
-                      >
+                      <span className="text-sm font-semibold text-foreground truncate block">
                         {c.candidate_name}
-                      </button>
+                      </span>
                       {c.email && (
                         <p className="text-xs text-muted-foreground truncate">{c.email}</p>
                       )}
@@ -196,22 +194,24 @@ const Candidates = () => {
                     </span>
 
                     {/* Status dropdown */}
-                    <Select value={c.status} onValueChange={(v) => updateStatus(c.id, v)}>
-                      <SelectTrigger className="w-[160px] h-8 text-xs border-none">
-                        <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
-                          {statusOpt.label}
-                        </Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map((s) => (
-                          <SelectItem key={s.value} value={s.value}>
-                            <Badge className={`text-[10px] px-2 py-0.5 ${s.color} border-0 pointer-events-none`}>
-                              {s.label}
-                            </Badge>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Select value={c.status} onValueChange={(v) => updateStatus(c.id, v)}>
+                        <SelectTrigger className="w-[160px] h-8 text-xs border-none">
+                          <Badge className={`text-[10px] px-2 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
+                            {statusOpt.label}
+                          </Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_OPTIONS.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>
+                              <Badge className={`text-[10px] px-2 py-0.5 ${s.color} border-0 pointer-events-none`}>
+                                {s.label}
+                              </Badge>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 );
               })}
