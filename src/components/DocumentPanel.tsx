@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Upload, FileText, RefreshCw } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { FileText, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,12 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-
-const ACCEPTED_TYPES = [
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
-const ACCEPTED_EXTENSIONS = [".pdf", ".docx"];
+import FileUploadZone from "./FileUploadZone";
 
 const MOCK_RESUME_TEXT = `JOHN SMITH
 Senior Software Engineer | San Francisco, CA
@@ -72,52 +66,15 @@ interface DocumentPanelProps {
 }
 
 const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionChange }: DocumentPanelProps) => {
-  const [isDragging, setIsDragging] = useState(false);
   const [jobModalOpen, setJobModalOpen] = useState(false);
-
-  const validateFile = (f: File): boolean => {
-    const ext = f.name.substring(f.name.lastIndexOf(".")).toLowerCase();
-    if (!ACCEPTED_TYPES.includes(f.type) && !ACCEPTED_EXTENSIONS.includes(ext)) {
-      toast({ variant: "destructive", title: "Invalid file type", description: "Please upload a .pdf or .docx file." });
-      return false;
-    }
-    return true;
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && validateFile(droppedFile)) onFileChange(droppedFile);
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files?.[0];
-    if (selected && validateFile(selected)) onFileChange(selected);
-    e.target.value = "";
-  };
 
   const wordCount = MOCK_RESUME_TEXT.split(/\s+/).length;
 
   if (!file) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => document.getElementById("file-input")?.click()}
-          className={cn(
-            "w-full max-w-lg flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-16 transition-all cursor-pointer",
-            isDragging
-              ? "border-primary bg-primary/5 scale-[1.01]"
-              : "border-border hover:border-primary/50 hover:bg-muted/50"
-          )}
-        >
-          <input id="file-input" type="file" accept=".pdf,.docx" className="hidden" onChange={handleFileInput} />
-          <Upload className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="font-medium text-foreground text-lg mb-1">Drop candidate resume here or <span className="text-primary font-semibold">Browse Files</span></p>
-          <p className="text-sm text-muted-foreground">Supports PDF and DOCX</p>
+        <div className="w-full max-w-lg">
+          <FileUploadZone file={null} onFileChange={onFileChange} />
         </div>
 
         <Dialog open={jobModalOpen} onOpenChange={setJobModalOpen}>
@@ -126,7 +83,7 @@ const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionCha
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Job Description</DialogTitle></DialogHeader>
-              <Textarea
+            <Textarea
               placeholder="Paste the job listing here so the analysis is tailored to this role…"
               value={jobDescription}
               onChange={(e) => onJobDescriptionChange(e.target.value)}
@@ -176,8 +133,8 @@ const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionCha
 
       {/* Document Content */}
       <div className="flex-1 overflow-y-auto p-8 md:p-12">
-        <div className="max-w-2xl mx-auto bg-card rounded-lg shadow-sm border border-border p-10 md:p-14">
-          <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground font-[system-ui] tracking-wide">
+        <div className="max-w-2xl mx-auto bg-card rounded-lg border border-border p-10 md:p-14">
+          <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90 font-[system-ui] tracking-wide">
             {MOCK_RESUME_TEXT}
           </div>
         </div>

@@ -8,11 +8,6 @@ const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasResults, setHasResults] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [isDark]);
 
   useEffect(() => {
     if (file) {
@@ -31,7 +26,7 @@ const Index = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      <Navbar score={hasResults ? 82 : null} isDark={isDark} onToggleTheme={() => setIsDark(!isDark)} />
+      <Navbar score={hasResults ? 82 : null} isDark={true} onToggleTheme={() => {}} />
 
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
         {/* Left Panel */}

@@ -93,10 +93,10 @@ const AnalysisSidebar = ({ isLoading, hasResults }: AnalysisSidebarProps) => {
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-4">Candidate Evaluation</h3>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-            <ScoreBar label="Sentiment" score={85} color="bg-score-green" delay={100} />
-            <ScoreBar label="Relevance" score={72} color="bg-score-blue" delay={200} />
-            <ScoreBar label="Skills Match" score={90} color="bg-score-green" delay={300} />
-            <ScoreBar label="Experience" score={78} color="bg-score-blue" delay={400} />
+            <ScoreBar label="Sentiment" score={85} delay={100} />
+            <ScoreBar label="Relevance" score={72} delay={200} />
+            <ScoreBar label="Skills Match" score={90} delay={300} />
+            <ScoreBar label="Experience" score={78} delay={400} />
           </div>
         </div>
 
@@ -120,7 +120,7 @@ const AnalysisSidebar = ({ isLoading, hasResults }: AnalysisSidebarProps) => {
       </div>
 
       {/* Agent Economics Footer */}
-      <div className="border-t border-border bg-muted/50 px-6 py-3">
+      <div className="border-t border-border bg-accent/50 px-6 py-3">
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1"><Timer className="h-3 w-3" /> 8s</span>
           <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> $0.03</span>
