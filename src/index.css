@@ -103,7 +103,6 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* Dark mode scrollbar styling */
