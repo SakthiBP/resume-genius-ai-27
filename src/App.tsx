@@ -13,7 +13,7 @@ import Roles from "./pages/Roles";
 import ROIDashboard from "./pages/ROIDashboard";
 
 import CandidateRecommendations from "./pages/CandidateRecommendations";
-import DataSources from "./pages/DataSources";
+
 import ExternalProfileView from "./pages/ExternalProfileView";
 import NotFound from "./pages/NotFound";
 
@@ -36,7 +36,7 @@ const App = () => (
               <Route path="/roi" element={<ROIDashboard />} />
               
               <Route path="/candidate-recommendations" element={<CandidateRecommendations />} />
-              <Route path="/data-sources" element={<DataSources />} />
+              
               <Route path="/external-profiles/:id" element={<ExternalProfileView />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
