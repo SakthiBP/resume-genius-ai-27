@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Users, ArrowUpDown } from "lucide-react";
-import CandidateDetailPanel from "@/components/CandidateDetailPanel";
 import type { AnalysisResult } from "@/types/analysis";
 
 interface Candidate {
@@ -62,15 +61,11 @@ function timeAgo(dateStr: string) {
 }
 
 const Candidates = () => {
+  const navigate = useNavigate();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
-
-  useEffect(() => {
-    fetchCandidates();
-  }, []);
 
   useEffect(() => {
     fetchCandidates();
@@ -175,7 +170,7 @@ const Candidates = () => {
                     {/* Name & email */}
                     <div className="flex-1 min-w-0">
                       <button
-                        onClick={() => setSelectedCandidate(c)}
+                        onClick={() => navigate(`/candidates/${c.id}`)}
                         className="text-sm font-semibold text-foreground hover:underline truncate text-left"
                       >
                         {c.candidate_name}
@@ -224,12 +219,6 @@ const Candidates = () => {
           )}
         </div>
       </div>
-
-      {/* Detail Panel */}
-      <CandidateDetailPanel
-        candidate={selectedCandidate}
-        onClose={() => setSelectedCandidate(null)}
-      />
     </div>
   );
 };
