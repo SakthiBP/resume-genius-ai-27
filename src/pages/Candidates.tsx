@@ -30,11 +30,11 @@ interface Candidate {
 }
 
 const STATUS_OPTIONS = [
-  { value: "pending", label: "Pending", color: "bg-gray-400/20 text-gray-600 dark:bg-gray-500/20 dark:text-gray-300" },
-  { value: "deny", label: "Denied", color: "bg-red-500 text-white" },
-  { value: "online_assessment", label: "OA Scheduled", color: "bg-amber-500 text-gray-900" },
-  { value: "interview", label: "Interview Scheduled", color: "bg-blue-500 text-white" },
-  { value: "hire", label: "Hired", color: "bg-green-500 text-white" },
+  { value: "pending", label: "Pending", color: "!bg-gray-400/20 !text-gray-600 dark:!bg-gray-500/20 dark:!text-gray-300" },
+  { value: "deny", label: "Denied", color: "!bg-red-500 !text-white" },
+  { value: "online_assessment", label: "OA Scheduled", color: "!bg-amber-500 !text-gray-900" },
+  { value: "interview", label: "Interview Scheduled", color: "!bg-blue-500 !text-white" },
+  { value: "hire", label: "Hired", color: "!bg-green-500 !text-white" },
 ];
 
 function getScoreBadgeClasses(score: number) {
@@ -233,7 +233,7 @@ const Candidates = () => {
                     </span>
 
                     {/* Status pill (read-only) */}
-                    <Badge className={`text-[10px] px-2.5 py-0.5 ${statusOpt.color} border-0 pointer-events-none shrink-0`}>
+                    <Badge className={`text-[10px] px-2.5 py-0.5 ${statusOpt.color} border-0 pointer-events-none shrink-0 hover:bg-none`}>
                       {statusOpt.label}
                     </Badge>
                   </div>
