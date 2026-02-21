@@ -1,6 +1,7 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OverallScoreBadge from "./OverallScoreBadge";
+import SwimLogo from "./SwimLogo";
 
 interface NavbarProps {
   score: number | null;
@@ -12,11 +13,9 @@ const Navbar = ({ score, isDark, onToggleTheme }: NavbarProps) => {
   return (
     <header className="h-14 border-b border-border bg-card flex items-center px-4 shrink-0">
       <div className="flex items-center gap-3 min-w-[200px]">
-        <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">R</span>
-        </div>
+        <SwimLogo size={28} />
         <div className="flex flex-col leading-tight">
-          <span className="font-semibold text-foreground text-lg leading-none">ResumeAI</span>
+          <span className="font-semibold text-foreground text-lg leading-none">Swim</span>
           <span className="text-[10px] text-muted-foreground tracking-wide">Agentic Talent Screening</span>
         </div>
       </div>

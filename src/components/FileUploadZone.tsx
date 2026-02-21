@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
-import { Upload, FileText, X } from "lucide-react";
+import { FileText, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import SwimLogo from "./SwimLogo";
 
 const ACCEPTED_TYPES = [
   "application/pdf",
@@ -62,7 +63,7 @@ const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
         "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-all duration-300 cursor-pointer group",
         isDragging
           ? "border-primary bg-primary/10 scale-[1.02]"
-          : "border-muted-foreground/30 hover:border-primary/60 hover:bg-muted/40"
+          : "border-border hover:border-primary/60 hover:bg-accent/40"
       )}
       onClick={() => document.getElementById("file-input")?.click()}
     >
@@ -95,10 +96,10 @@ const FileUploadZone = ({ file, onFileChange }: FileUploadZoneProps) => {
         </div>
       ) : (
         <>
-          <Upload className="h-10 w-10 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
+          <SwimLogo size={48} className="mb-4 group-hover:scale-105 transition-transform" />
           <p className="font-medium text-foreground">
             Drop candidate resume here or{" "}
-            <span className="gradient-text font-semibold">browse</span>
+            <span className="text-primary font-semibold">Browse Files</span>
           </p>
           <p className="text-sm text-muted-foreground mt-1">
             Supports PDF and DOCX
