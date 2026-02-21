@@ -145,7 +145,7 @@ Return this exact JSON structure:
 SECTION SCORING RULES:
 job_description_match: Score based on % of required keywords/criteria found. Award full points per keyword matched. Partial credit for adjacent/related terms.
 skills_assessment: Score based on required skills satisfied. Partial credit for transferable or related skills. Bonus points for exceeding requirements.
-education: Score based on TWO primary factors:
+education: Score based on THREE primary factors:
   1. UNIVERSITY PRESTIGE (use QS World University Rankings as benchmark):
      - QS Top 10 = exceptional (qs_ranking_tier: "top_10")
      - QS Top 50 = high (qs_ranking_tier: "top_50")
@@ -169,7 +169,22 @@ education: Score based on TWO primary factors:
      - "average": US 2.5-2.99 / German 3.1-3.5 / Indian 6.0-6.9 / AU P / CN 60-69
      - "below_average": anything below the above thresholds
      Keep gpa_or_grade in the ORIGINAL format from the CV. The normalised tier goes in grade_quality_tier.
-  Also factor in: degree completion (on time = full credit), course relevance to the role. Deduct for incomplete degrees or extended duration. If target universities are provided in the role, check if the candidate's institution matches any of them.
+  3. DEGREE LEVEL AND SUBJECT RELEVANCE:
+     Degree level weighting:
+     - PhD / Doctorate = highest weight
+     - Masters = high weight
+     - Bachelors = standard weight
+     - Foundation degree / HND / Associate = lower weight
+     - A-Levels / High School only = lowest weight
+     Subject relevance must be scored DYNAMICALLY against the specific role being analysed. No subject is inherently good or bad — relevance depends entirely on the role. Examples:
+     - English Literature for Content Strategist = highly_relevant
+     - English Literature for Software Engineer = not_relevant
+     - Computer Science for Software Engineer = highly_relevant
+     - Computer Science for Marketing Manager = not_relevant
+     - Mathematics for Quantitative Analyst = highly_relevant
+     - Mathematics for HR Manager = not_relevant
+     Set course_relevance to: highly_relevant | relevant | partially_relevant | not_relevant based on how well the degree subject maps to the role's requirements.
+  Also factor in: degree completion (on time = full credit). Deduct for incomplete degrees or extended duration. If target universities are provided in the role, check if the candidate's institution matches any of them.
 work_experience: Score based on: relevance of roles to JD, company prestige, industry experience match, career progression, and employment gap severity. Partial credit for adjacent industries or transferable roles.
 right_to_work: Full score if eligible with no sponsorship needed. Deduct proportionally for uncertainty or sponsorship requirements. Score 0 if clearly ineligible. Flag all cases requiring human verification.
 red_flags: Starts at 100, deduct per flag found. Weight deductions by severity (high = -20, medium = -10, low = -5). Vague descriptions and inconsistencies each deduct 5 points.

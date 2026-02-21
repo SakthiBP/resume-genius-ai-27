@@ -121,14 +121,15 @@ function mapResultToInsights(r: AnalysisResult, hasRole: boolean): Insight[] {
     const gradeNorm = gradeQualityLabel(edu.grade_quality_tier);
     const gradeLine = gradeOriginal ? `${gradeOriginal}${gradeNorm ? ` — ${gradeNorm}` : ""}` : null;
     const onTimeLine = edu.completed_on_time === "yes" ? "✓ Completed on time" : edu.completed_on_time === "no" ? "✗ Extended duration" : null;
-    const relevanceLine = courseRelevanceLabel(edu.course_relevance);
+    const relevance = courseRelevanceLabel(edu.course_relevance);
+    const relevanceLine = relevance && hasRole ? `${edu.course || edu.degree || "Degree"} — ${relevance} to role` : relevance ? `Course relevance: ${relevance}` : null;
 
     const detailParts = [
       institutionLine,
       degreeLine || null,
       gradeLine,
       onTimeLine,
-      relevanceLine ? `Course relevance: ${relevanceLine}` : null,
+      relevanceLine,
       edu.notes || null,
     ].filter(Boolean).join("\n");
 
@@ -299,7 +300,19 @@ const AnalysisSidebar = ({ isLoading, hasResults, result, hasRole }: AnalysisSid
             <ScoreBar label="Education" score={educationScore} delay={200} weightLabel={isNewFormat ? "15%" : undefined} />
             <ScoreBar label="Experience" score={experienceScore} delay={250} weightLabel={isNewFormat ? "25%" : undefined} />
             <ScoreBar label="Right to Work" score={rtwScore} delay={300} weightLabel={isNewFormat ? "10%" : undefined} />
-            <ScoreBar label="Red Flags" score={redFlagsScore} delay={350} weightLabel={isNewFormat ? "5%" : undefined} />
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                  Red Flags
+                  {isNewFormat && <span className="text-[10px] text-muted-foreground font-normal">5%</span>}
+                </span>
+                {result.red_flags.red_flag_count === 0 ? (
+                  <span className="text-xs font-semibold text-score-green">No Red Flags</span>
+                ) : (
+                  <span className="text-xs font-semibold text-score-red">{result.red_flags.red_flag_count} Red Flag{result.red_flags.red_flag_count !== 1 ? "s" : ""}</span>
+                )}
+              </div>
+            </div>
             <ScoreBar label="Sentiment" score={sentimentScore} delay={400} weightLabel={isNewFormat ? "10%" : undefined} />
           </div>
         </div>

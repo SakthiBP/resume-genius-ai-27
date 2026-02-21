@@ -322,9 +322,9 @@ const ROIDashboard = () => {
               </Card>
               <Card className="border border-border bg-card flex items-center justify-center">
                 <CardContent className="p-5 flex flex-col items-center text-center gap-3">
-                  <Badge className="score-badge-green text-base px-4 py-1.5 font-bold border">
+                  <div className="score-badge-green text-base px-4 py-1.5 font-bold border inline-flex items-center rounded-full">
                     {metrics.costReduction.toFixed(1)}% Reduction
-                  </Badge>
+                  </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span className="font-mono">$3.50</span>
                     <ArrowRight className="h-3.5 w-3.5" />
