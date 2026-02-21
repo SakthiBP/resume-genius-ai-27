@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   TrendingUp,
   Clock,
-  DollarSign,
+  PoundSterling,
   FileText,
   Zap,
   Users,
@@ -248,7 +248,7 @@ const ROIDashboard = () => {
           {/* ── Hero Metric Cards ─────────────────────── */}
           <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
             <MetricCard icon={<FileText className="h-4 w-4" />} label="CVs Analysed" value={fmtNum(animCVs)} delay={0} />
-            <MetricCard icon={<DollarSign className="h-4 w-4" />} label="Total Value Saved" value={fmtGBP(animSaved)} accent delay={1} />
+            <MetricCard icon={<PoundSterling className="h-4 w-4" />} label="Total Value Saved" value={fmtGBP(animSaved)} accent delay={1} />
             <MetricCard icon={<Zap className="h-4 w-4" />} label="Total AI Spend" value={fmtGBP(animAiCost, 4)} delay={2} />
             <MetricCard icon={<Clock className="h-4 w-4" />} label="Human Hours Saved" value={`${animHrs}h`} delay={3} />
             <MetricCard icon={<Cpu className="h-4 w-4" />} label="Tokens Consumed" value={fmtNum(animTokens)} delay={4} />
