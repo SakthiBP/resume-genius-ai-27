@@ -324,19 +324,12 @@ serve(async (req) => {
       const candidateName = analysis.candidate_name || 'Unknown';
       const candidateEmail = analysis.email || null;
 
-      // Check for existing candidate with same name AND email
-      let existingQuery = supabaseClient
+      // Check for existing candidate with same name (case-insensitive)
+      const { data: existing } = await supabaseClient
         .from('candidates')
         .select('id, status')
-        .eq('candidate_name', candidateName);
-
-      if (candidateEmail) {
-        existingQuery = existingQuery.eq('email', candidateEmail);
-      } else {
-        existingQuery = existingQuery.is('email', null);
-      }
-
-      const { data: existing } = await existingQuery.maybeSingle();
+        .ilike('candidate_name', candidateName)
+        .maybeSingle();
 
       if (existing) {
         // Update existing record; preserve status unless it was still 'pending'
