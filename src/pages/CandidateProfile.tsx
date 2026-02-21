@@ -308,12 +308,18 @@ const CandidateProfile = () => {
     await supabase.from("candidates").update({ status }).eq("id", candidate.id);
     setCandidate((prev) => prev ? { ...prev, status } : prev);
 
-    // Generate email template
+    // Generate email template with role & feedback context
     const roleTitle = candidate.job_description ? candidate.job_description.split("\n")[0].replace("Job Title: ", "") : undefined;
+    const analysis = candidate.analysis_json as any;
+    const improvementSuggestions = analysis?.overall_score?.improvement_suggestions as string[] | undefined;
+    const recommendation = analysis?.overall_score?.recommendation as string | undefined;
+
     const template = getEmailTemplate(status, {
       candidate_name: candidate.candidate_name,
       recruiter_name: RECRUITER_NAME,
       role_title: roleTitle,
+      improvement_suggestions: improvementSuggestions,
+      recommendation,
     });
     setEmailTemplate(template);
     setShowEmailPreview(true);
