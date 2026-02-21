@@ -26,7 +26,6 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  ResponsiveContainer,
   BarChart,
   Bar,
   XAxis,
@@ -37,7 +36,13 @@ import {
   Pie,
   Cell,
   Legend,
+  Tooltip,
 } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import type { AnalysisResult } from "@/types/analysis";
 
 const STATUS_OPTIONS = [
@@ -362,36 +367,39 @@ const CandidateProfile = () => {
             {/* Radar Chart */}
             <section className="bg-card border border-border p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Candidate Profile Shape</h3>
-              <ResponsiveContainer width="100%" height={260}>
+              <ChartContainer config={{ score: { label: "Score", color: CHART_COLOURS.primary } }} className="h-[260px] w-full">
                 <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
                   <PolarGrid stroke="hsl(0,0%,30%)" />
                   <PolarAngleAxis dataKey="dimension" tick={{ fill: "hsl(0,0%,55%)", fontSize: 11 }} />
                   <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
                   <Radar name="Score" dataKey="score" stroke={CHART_COLOURS.primary} fill={CHART_COLOURS.primary} fillOpacity={0.25} strokeWidth={2} isAnimationActive={false} />
                 </RadarChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             </section>
 
             {/* Bar Chart vs Baseline */}
             <section className="bg-card border border-border p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Scores vs Average Baseline</h3>
-              <ResponsiveContainer width="100%" height={260}>
+              <ChartContainer config={{ score: { label: "Score", color: CHART_COLOURS.primary } }} className="h-[260px] w-full">
                 <BarChart data={barData} layout="vertical" margin={{ left: 10, right: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(0,0%,20%)" />
                   <XAxis type="number" domain={[0, 100]} tick={{ fill: "hsl(0,0%,55%)", fontSize: 11 }} />
                   <YAxis type="category" dataKey="dimension" tick={{ fill: "hsl(0,0%,55%)", fontSize: 11 }} width={80} />
                   <ReferenceLine x={50} stroke={CHART_COLOURS.muted} strokeDasharray="4 4" label={{ value: "Avg", fill: CHART_COLOURS.muted, fontSize: 10 }} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar dataKey="score" fill={CHART_COLOURS.primary} radius={[0, 4, 4, 0]} barSize={20} isAnimationActive={false} />
                 </BarChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             </section>
 
             {/* Skills Breakdown Pie */}
             <section className="bg-card border border-border p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Skills Breakdown</h3>
               {skillsPieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={240}>
+                <ChartContainer config={{ value: { label: "Count", color: CHART_COLOURS.primary } }} className="h-[240px] w-full">
                   <PieChart>
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <Pie data={skillsPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} strokeWidth={0}>
                       {skillsPieData.map((_, i) => (
                         <Cell key={i} fill={PIE_COLOURS[i % PIE_COLOURS.length]} />
@@ -399,7 +407,7 @@ const CandidateProfile = () => {
                     </Pie>
                     <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: "hsl(0,0%,55%)" }} />
                   </PieChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               ) : (
                 <p className="text-sm text-muted-foreground">No skills data available.</p>
               )}
@@ -409,8 +417,9 @@ const CandidateProfile = () => {
             <section className="bg-card border border-border p-6">
               <h3 className="text-sm font-semibold text-foreground mb-4 uppercase">Red Flags by Severity</h3>
               {flagPieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={240}>
+                <ChartContainer config={{ value: { label: "Count", color: CHART_COLOURS.red } }} className="h-[240px] w-full">
                   <PieChart>
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <Pie data={flagPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} strokeWidth={0}>
                       {flagPieData.map((entry, i) => (
                         <Cell key={i} fill={entry.colour} />
@@ -418,7 +427,7 @@ const CandidateProfile = () => {
                     </Pie>
                     <Legend iconType="circle" wrapperStyle={{ fontSize: 11, color: "hsl(0,0%,55%)" }} />
                   </PieChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               ) : (
                 <div className="h-[240px] flex items-center justify-center">
                   <p className="text-sm text-score-green">No red flags detected ✓</p>
