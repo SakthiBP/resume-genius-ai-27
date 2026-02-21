@@ -22,9 +22,9 @@ interface InsightCardProps {
 
 const typeConfig: Record<InsightType, { icon: typeof AlertTriangle; label: string; accent: string; bgAccent: string }> = {
   "red-flag": { icon: AlertTriangle, label: "Red Flag", accent: "text-score-red", bgAccent: "bg-score-red/10" },
-  suggestion: { icon: Lightbulb, label: "Suggestion", accent: "text-score-blue", bgAccent: "bg-score-blue/10" },
-  skill: { icon: Zap, label: "Skills", accent: "text-score-green", bgAccent: "bg-score-green/10" },
-  experience: { icon: Briefcase, label: "Experience", accent: "text-score-purple", bgAccent: "bg-score-purple/10" },
+  suggestion: { icon: Lightbulb, label: "Recommendation", accent: "text-score-blue", bgAccent: "bg-score-blue/10" },
+  skill: { icon: Zap, label: "Strength", accent: "text-score-green", bgAccent: "bg-score-green/10" },
+  experience: { icon: Briefcase, label: "Role Fit", accent: "text-score-purple", bgAccent: "bg-score-purple/10" },
 };
 
 const severityColors: Record<string, string> = {

@@ -116,18 +116,18 @@ const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionCha
         >
           <input id="file-input" type="file" accept=".pdf,.docx" className="hidden" onChange={handleFileInput} />
           <Upload className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="font-medium text-foreground text-lg mb-1">Drop your resume here or <span className="text-primary font-semibold">Browse Files</span></p>
+          <p className="font-medium text-foreground text-lg mb-1">Drop candidate resume here or <span className="text-primary font-semibold">Browse Files</span></p>
           <p className="text-sm text-muted-foreground">Supports PDF and DOCX</p>
         </div>
 
         <Dialog open={jobModalOpen} onOpenChange={setJobModalOpen}>
           <DialogTrigger asChild>
-            <button className="mt-6 text-sm text-primary hover:underline">Paste job description (optional)</button>
+            <button className="mt-6 text-sm text-primary hover:underline">Paste job description for role-specific screening</button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Job Description</DialogTitle></DialogHeader>
-            <Textarea
-              placeholder="Paste the job listing here for a tailored analysis…"
+              <Textarea
+              placeholder="Paste the job listing here so the analysis is tailored to this role…"
               value={jobDescription}
               onChange={(e) => onJobDescriptionChange(e.target.value)}
               rows={8}
@@ -156,7 +156,7 @@ const DocumentPanel = ({ file, onFileChange, jobDescription, onJobDescriptionCha
             <DialogContent>
               <DialogHeader><DialogTitle>Job Description</DialogTitle></DialogHeader>
               <Textarea
-                placeholder="Paste the job listing here for a tailored analysis…"
+                placeholder="Paste the job listing here so the analysis is tailored to this role…"
                 value={jobDescription}
                 onChange={(e) => onJobDescriptionChange(e.target.value)}
                 rows={8}
