@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      candidate_recommendations: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          job_role: string
+          results: Json
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          job_role: string
+          results?: Json
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          job_role?: string
+          results?: Json
+        }
+        Relationships: []
+      }
       candidates: {
         Row: {
           analysis_json: Json
@@ -21,10 +45,12 @@ export type Database = {
           created_at: string
           cv_text: string
           email: string | null
+          external_candidate_id: string | null
           id: string
           job_description: string | null
           overall_score: number
           recommendation: string
+          source: string | null
           status: string
         }
         Insert: {
@@ -33,10 +59,12 @@ export type Database = {
           created_at?: string
           cv_text: string
           email?: string | null
+          external_candidate_id?: string | null
           id?: string
           job_description?: string | null
           overall_score?: number
           recommendation?: string
+          source?: string | null
           status?: string
         }
         Update: {
@@ -45,11 +73,63 @@ export type Database = {
           created_at?: string
           cv_text?: string
           email?: string | null
+          external_candidate_id?: string | null
           id?: string
           job_description?: string | null
           overall_score?: number
           recommendation?: string
+          source?: string | null
           status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_external_candidate_id_fkey"
+            columns: ["external_candidate_id"]
+            isOneToOne: false
+            referencedRelation: "external_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_candidates: {
+        Row: {
+          created_at: string
+          experience: Json
+          headline: string | null
+          id: string
+          linkedin_url: string | null
+          location: string | null
+          name: string
+          profile_image_url: string | null
+          raw_data: Json | null
+          skills: Json
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          experience?: Json
+          headline?: string | null
+          id?: string
+          linkedin_url?: string | null
+          location?: string | null
+          name: string
+          profile_image_url?: string | null
+          raw_data?: Json | null
+          skills?: Json
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          experience?: Json
+          headline?: string | null
+          id?: string
+          linkedin_url?: string | null
+          location?: string | null
+          name?: string
+          profile_image_url?: string | null
+          raw_data?: Json | null
+          skills?: Json
+          source?: string
         }
         Relationships: []
       }

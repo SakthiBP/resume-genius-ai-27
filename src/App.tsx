@@ -12,6 +12,7 @@ import CandidateProfile from "./pages/CandidateProfile";
 import Roles from "./pages/Roles";
 import ROIDashboard from "./pages/ROIDashboard";
 import BatchUpload from "./pages/BatchUpload";
+import CandidateRecommendations from "./pages/CandidateRecommendations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/roles" element={<Roles />} />
               <Route path="/roi" element={<ROIDashboard />} />
               <Route path="/batch" element={<BatchUpload />} />
+              <Route path="/candidate-recommendations" element={<CandidateRecommendations />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
