@@ -339,46 +339,55 @@ const CandidateProfile = () => {
   ) => {
     if (!candidate || !pendingStatus) return;
 
-    const { data, error } = await supabase.functions.invoke("send-email", {
-      body: {
-        candidate_id: candidate.id,
-        candidate_email: candidate.email,
-        subject,
-        email_body: body,
-        status_attempted: pendingStatus,
-        previous_status: previousStatus,
-        edited_before_send: editedBeforeSend,
-        edit_summary: editSummary,
-        action: "send",
-      },
-    });
+    try {
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          candidate_id: candidate.id,
+          candidate_email: candidate.email,
+          subject,
+          email_body: body,
+          status_attempted: pendingStatus,
+          previous_status: previousStatus,
+          edited_before_send: editedBeforeSend,
+          edit_summary: editSummary,
+          action: "send",
+        },
+      });
 
-    if (error || data?.error) {
-      toast({ variant: "destructive", title: "Email failed", description: data?.error || error?.message || "Could not send email." });
-    } else {
-      toast({ title: "Email sent", description: `Email sent to ${candidate.email}` });
+      if (error || data?.error) {
+        toast({ variant: "destructive", title: "Email failed", description: data?.error || error?.message || "Could not send email." });
+      } else {
+        toast({ title: "Email sent", description: `Email sent to ${candidate.email}` });
+      }
+    } catch (err: any) {
+      console.error("Email send error:", err);
+      toast({ variant: "destructive", title: "Email failed", description: err.message || "An unexpected error occurred." });
+    } finally {
+      setShowEmailPreview(false);
+      setPendingStatus(null);
+      setPreviousStatus(null);
     }
-
-    setShowEmailPreview(false);
-    setPendingStatus(null);
-    setPreviousStatus(null);
   };
 
   const handleEmailCancel = async () => {
     if (!candidate || !pendingStatus) return;
 
-    // Call cancel action to revert status & log
-    await supabase.functions.invoke("send-email", {
-      body: {
-        candidate_id: candidate.id,
-        candidate_email: candidate.email,
-        subject: emailTemplate.subject,
-        email_body: emailTemplate.body,
-        status_attempted: pendingStatus,
-        previous_status: previousStatus,
-        action: "cancel",
-      },
-    });
+    try {
+      // Call cancel action to revert status & log
+      await supabase.functions.invoke("send-email", {
+        body: {
+          candidate_id: candidate.id,
+          candidate_email: candidate.email,
+          subject: emailTemplate.subject,
+          email_body: emailTemplate.body,
+          status_attempted: pendingStatus,
+          previous_status: previousStatus,
+          action: "cancel",
+        },
+      });
+    } catch (err: any) {
+      console.error("Email cancel error:", err);
+    }
 
     // Revert local state
     if (previousStatus) {
