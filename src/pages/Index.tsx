@@ -61,7 +61,7 @@ const Index = () => {
       toast({
         variant: "destructive",
         title: "Analysis failed",
-        description: err.message || "Could not analyze the resume. Please try again.",
+        description: err.message || "Could not analyse the resume. Please try again.",
       });
     } finally {
       setIsAnalyzing(false);

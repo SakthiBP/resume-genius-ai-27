@@ -9,7 +9,7 @@ const corsHeaders = {
 };
 
 const SYSTEM_PROMPT = `You are an expert HR analyst and recruitment AI agent.
-You analyze CVs/resumes and return structured evaluations
+You analyse CVs/resumes and return structured evaluations
 in JSON format. Return ONLY valid JSON - no markdown, no
 explanation, no preamble.
 
@@ -88,7 +88,7 @@ serve(async (req) => {
 
     const startTime = Date.now();
 
-    const originalUserMessage = `Analyze this CV:\n\n<cv_text>\n${cv_text}\n</cv_text>\n\n<job_description>\n${job_description || 'General evaluation'}\n</job_description>\n\nReturn ONLY valid JSON.`;
+    const originalUserMessage = `Analyse this CV:\n\n<cv_text>\n${cv_text}\n</cv_text>\n\n<job_description>\n${job_description || 'General evaluation'}\n</job_description>\n\nReturn ONLY valid JSON.`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

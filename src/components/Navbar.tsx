@@ -35,7 +35,7 @@ const Navbar = ({ score }: NavbarProps) => {
         </Link>
         <Link to="/">
           <Button variant={location.pathname === "/" ? "secondary" : "ghost"} size="sm" className="h-8 text-xs">
-            Analyzer
+            Analyser
           </Button>
         </Link>
         <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8">
