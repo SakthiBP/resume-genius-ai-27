@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import DocumentPanel from "@/components/DocumentPanel";
 import AnalysisSidebar from "@/components/AnalysisSidebar";
@@ -7,6 +7,14 @@ import { toast } from "@/hooks/use-toast";
 import { extractTextFromFile } from "@/lib/extractText";
 import type { AnalysisResult } from "@/types/analysis";
 
+interface SelectedRole {
+  id: string;
+  job_title: string;
+  description: string;
+  target_universities: { name: string; required_gpa: number }[];
+  required_skills: string[];
+}
+
 const Index = () => {
   const [file, setFile] = useState<File | null>(null);
   const [extractedText, setExtractedText] = useState<string>("");
@@ -14,6 +22,7 @@ const Index = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [selectedRole, setSelectedRole] = useState<SelectedRole | null>(null);
 
   const handleFileChange = async (newFile: File | null) => {
     setFile(newFile);
@@ -45,10 +54,30 @@ const Index = () => {
     setAnalysisResult(null);
 
     try {
+      let jobContext = jobDescription.trim() || null;
+
+      if (selectedRole) {
+        const roleParts = [
+          `Job Title: ${selectedRole.job_title}`,
+          selectedRole.description ? `Job Description: ${selectedRole.description}` : "",
+          selectedRole.required_skills.length > 0
+            ? `Required Skills: ${selectedRole.required_skills.join(", ")}`
+            : "",
+          selectedRole.target_universities.length > 0
+            ? `Target Universities: ${selectedRole.target_universities
+                .map((u) => `${u.name} (min GPA: ${u.required_gpa})`)
+                .join(", ")}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+        jobContext = jobContext ? `${roleParts}\n\n---\n\nAdditional context:\n${jobContext}` : roleParts;
+      }
+
       const { data, error } = await supabase.functions.invoke("analyze-cv", {
         body: {
           cv_text: extractedText,
-          job_description: jobDescription.trim() || null,
+          job_description: jobContext,
         },
       });
 
@@ -85,6 +114,8 @@ const Index = () => {
             onJobDescriptionChange={setJobDescription}
             onAnalyze={analyzeResume}
             isAnalyzing={isAnalyzing}
+            selectedRole={selectedRole}
+            onSelectedRoleChange={setSelectedRole}
           />
         </div>
 

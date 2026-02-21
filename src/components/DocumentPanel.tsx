@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FileText, RefreshCw, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { FileText, RefreshCw, Loader2, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,7 +10,23 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import FileUploadZone from "./FileUploadZone";
+import { supabase } from "@/integrations/supabase/client";
+
+interface SelectedRole {
+  id: string;
+  job_title: string;
+  description: string;
+  target_universities: { name: string; required_gpa: number }[];
+  required_skills: string[];
+}
 
 interface DocumentPanelProps {
   file: File | null;
@@ -21,6 +37,8 @@ interface DocumentPanelProps {
   onJobDescriptionChange: (val: string) => void;
   onAnalyze: () => void;
   isAnalyzing: boolean;
+  selectedRole: SelectedRole | null;
+  onSelectedRoleChange: (role: SelectedRole | null) => void;
 }
 
 const DocumentPanel = ({
@@ -32,8 +50,27 @@ const DocumentPanel = ({
   onJobDescriptionChange,
   onAnalyze,
   isAnalyzing,
+  selectedRole,
+  onSelectedRoleChange,
 }: DocumentPanelProps) => {
   const [jobModalOpen, setJobModalOpen] = useState(false);
+  const [roles, setRoles] = useState<SelectedRole[]>([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const { data } = await supabase.from("roles").select("id, job_title, description, target_universities, required_skills").order("job_title");
+      if (data) {
+        setRoles(
+          data.map((r: any) => ({
+            ...r,
+            target_universities: Array.isArray(r.target_universities) ? r.target_universities : [],
+            required_skills: Array.isArray(r.required_skills) ? r.required_skills : [],
+          }))
+        );
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const wordCount = extractedText ? extractedText.split(/\s+/).filter(Boolean).length : 0;
 
@@ -73,6 +110,32 @@ const DocumentPanel = ({
           <span className="font-medium text-foreground">{file.name}</span>
         </div>
         <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
+                Select Role
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onSelectedRoleChange(null)}>
+                <span className="text-muted-foreground">No role (general evaluation)</span>
+              </DropdownMenuItem>
+              {roles.map((role) => (
+                <DropdownMenuItem key={role.id} onClick={() => onSelectedRoleChange(role)}>
+                  {role.job_title}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {selectedRole && (
+            <Badge variant="secondary" className="gap-1 text-xs pr-1">
+              {selectedRole.job_title}
+              <button onClick={() => onSelectedRoleChange(null)} className="ml-0.5 rounded-full hover:bg-muted p-0.5">
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
           <Button
             size="sm"
             onClick={onAnalyze}

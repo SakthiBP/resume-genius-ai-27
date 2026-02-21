@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Candidates from "./pages/Candidates";
 import CandidateProfile from "./pages/CandidateProfile";
+import Roles from "./pages/Roles";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/candidates" element={<Candidates />} />
             <Route path="/candidates/:id" element={<CandidateProfile />} />
+            <Route path="/roles" element={<Roles />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
