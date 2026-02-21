@@ -82,11 +82,11 @@ const STATUS_OPTIONS = [
 ];
 
 const REC_LABELS: Record<string, { label: string; color: string }> = {
-  strong_yes: { label: "Strong Yes", color: "score-badge-green" },
-  yes: { label: "Yes", color: "score-badge-green" },
-  maybe: { label: "Maybe", color: "score-badge-yellow" },
-  no: { label: "No", color: "score-badge-red" },
-  strong_no: { label: "Strong No", color: "score-badge-red" },
+  strong_yes: { label: "Strong Yes", color: "bg-green-700 text-white" },
+  yes: { label: "Yes", color: "bg-green-500 text-white" },
+  maybe: { label: "Maybe", color: "bg-amber-500 text-white" },
+  no: { label: "No", color: "bg-red-500 text-white" },
+  strong_no: { label: "Strong No", color: "bg-red-800 text-white" },
 };
 
 const CHART_COLOURS = {
@@ -459,7 +459,12 @@ const CandidateProfile = () => {
 
             {/* Info */}
             <div className="flex-1 min-w-0 space-y-3">
-              <h1 className="text-2xl font-bold text-foreground uppercase">{candidate.candidate_name}</h1>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-bold text-foreground uppercase">{candidate.candidate_name}</h1>
+                <Badge className={`text-[10px] font-semibold px-2 py-0.5 border-0 pointer-events-none ${rec.color}`}>
+                  {rec.label}
+                </Badge>
+              </div>
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 {candidate.email && (
                   <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" />{candidate.email}</span>
@@ -467,9 +472,6 @@ const CandidateProfile = () => {
                 <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{formatDate(candidate.created_at)}</span>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <Badge variant="outline" className={`text-xs font-semibold px-3 py-1 ${rec.color} pointer-events-none`}>
-                  {rec.label}
-                </Badge>
                 <Badge className={`text-[10px] px-2.5 py-0.5 ${statusOpt.color} border-0 pointer-events-none`}>
                   {statusOpt.label}
                 </Badge>
