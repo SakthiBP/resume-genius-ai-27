@@ -14,6 +14,7 @@ interface CandidateDetailPanelProps {
     candidate_name: string;
     analysis_json: AnalysisResult;
     cv_text: string;
+    job_description?: string | null;
   } | null;
   onClose: () => void;
 }
@@ -33,6 +34,7 @@ const CandidateDetailPanel = ({ candidate, onClose }: CandidateDetailPanelProps)
                 isLoading={false}
                 hasResults={true}
                 result={candidate.analysis_json}
+                hasRole={!!candidate.job_description}
               />
               <div className="border-t border-border px-6 py-4">
                 <h4 className="text-sm font-semibold text-foreground mb-2">Original CV Text</h4>

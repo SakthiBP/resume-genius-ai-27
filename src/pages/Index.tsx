@@ -120,7 +120,7 @@ const Index = () => {
         </div>
 
         <div className="flex-[2] flex flex-col min-h-0">
-          <AnalysisSidebar isLoading={isAnalyzing} hasResults={!!analysisResult} result={analysisResult} />
+          <AnalysisSidebar isLoading={isAnalyzing} hasResults={!!analysisResult} result={analysisResult} hasRole={!!selectedRole} />
         </div>
       </div>
     </div>
