@@ -6,10 +6,23 @@ interface TemplateVars {
   recommendation?: string;
 }
 
+interface OutreachVars {
+  display_name: string;
+  recruiter_name: string;
+  company_name: string;
+  recruiter_email: string;
+  role_title: string;
+  top_languages: string[];
+  standout_signal: string;
+  location_city?: string;
+}
+
 interface EmailTemplate {
   subject: string;
   body: string;
 }
+
+// duplicate removed
 
 export function getEmailTemplate(
   status: string,
@@ -99,4 +112,43 @@ Best regards,
 ${recruiter_name}`,
       };
   }
+}
+
+export function getOutreachEmailTemplate(vars: OutreachVars): EmailTemplate {
+  const {
+    display_name,
+    recruiter_name,
+    company_name,
+    recruiter_email,
+    role_title,
+    top_languages,
+    standout_signal,
+    location_city,
+  } = vars;
+
+  const locationStr = location_city ? ` based in ${location_city}` : "";
+  const langStr = top_languages.slice(0, 3).join(", ");
+
+  return {
+    subject: `Opportunity at ${company_name} - ${role_title}`,
+    body: `Dear ${display_name},
+
+I hope this message finds you well. My name is ${recruiter_name} and I am part of the recruitment team at ${company_name}.
+
+I came across your GitHub profile while searching for engineers with experience in ${langStr}, and I was genuinely impressed by ${standout_signal}.
+
+We are currently looking for a ${role_title} to join our team${locationStr} and I believe your background could be a strong fit for what we are building.
+
+I would love to share more details about the role and learn more about what you are working on at the moment. Would you be open to a brief conversation at your convenience?
+
+There is absolutely no pressure - I simply wanted to reach out personally given how relevant your work appeared to be.
+
+Please feel free to reply to this email or reach me directly at ${recruiter_email} if you have any questions.
+
+Yours sincerely,
+${recruiter_name}
+Recruitment Team
+${company_name}
+${recruiter_email}`,
+  };
 }
