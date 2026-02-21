@@ -431,14 +431,10 @@ export default function CandidateRecommendations() {
         </div>
 
         <Tabs defaultValue="github" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="w-auto">
             <TabsTrigger value="github" className="gap-2">
               <Github className="h-4 w-4" />
-              Find on GitHub
-            </TabsTrigger>
-            <TabsTrigger value="pool" className="gap-2">
-              <Search className="h-4 w-4" />
-              Talent Pool
+              Find Talent Pool on GitHub
             </TabsTrigger>
           </TabsList>
 
@@ -477,17 +473,13 @@ export default function CandidateRecommendations() {
                   <Input placeholder="e.g. UK" value={ghCountry} onChange={(e) => setGhCountry(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Company Name (for emails)</label>
-                  <Input placeholder="e.g. NovaGrid Systems" value={ghCompanyName} onChange={(e) => setGhCompanyName(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Result Count</label>
                   <Input type="number" min={1} max={20} value={ghResultCount} onChange={(e) => setGhResultCount(parseInt(e.target.value) || 10)} />
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <Switch checked={ghRemote} onCheckedChange={setGhRemote} id="remote-switch" />
+                <Switch checked={ghRemote} onCheckedChange={setGhRemote} id="remote-switch" className="shadow-none" />
                 <label htmlFor="remote-switch" className="text-xs text-muted-foreground cursor-pointer">Include remote candidates (no location filter)</label>
               </div>
 
@@ -540,96 +532,6 @@ export default function CandidateRecommendations() {
             )}
           </TabsContent>
 
-          {/* ═══════ POOL TAB ═══════ */}
-          <TabsContent value="pool" className="space-y-4">
-            {/* Add Candidate Section */}
-            <div className="border-2 border-border bg-card shadow-xs">
-              <button onClick={() => setAddFormOpen(!addFormOpen)} className="w-full p-4 flex items-center justify-between text-sm font-semibold hover:bg-accent/50 transition-colors">
-                <span className="flex items-center gap-2"><Plus className="h-4 w-4" /> Add Candidate to Pool</span>
-                {addFormOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
-              {addFormOpen && (
-                <div className="p-5 pt-0 space-y-3 border-t border-border">
-                  <p className="text-xs text-muted-foreground pt-3">Manually enter candidate details.</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">Full Name *</label><Input placeholder="Jane Smith" value={formName} onChange={(e) => setFormName(e.target.value)} /></div>
-                    <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">Headline</label><Input placeholder="Senior Software Engineer" value={formHeadline} onChange={(e) => setFormHeadline(e.target.value)} /></div>
-                    <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">Location</label><Input placeholder="London, UK" value={formLocation} onChange={(e) => setFormLocation(e.target.value)} /></div>
-                    <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">LinkedIn URL</label><Input placeholder="https://linkedin.com/in/username" value={formLinkedinUrl} onChange={(e) => setFormLinkedinUrl(e.target.value)} /></div>
-                  </div>
-                  <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">Skills (comma-separated)</label><Input placeholder="Python, React, AWS" value={formSkills} onChange={(e) => setFormSkills(e.target.value)} /></div>
-                  <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">Experience (one per line: "Title at Company (Duration)")</label><Textarea placeholder={"Senior Engineer at Google (3 years)\nDeveloper at Startup (2 years)"} value={formExperience} onChange={(e) => setFormExperience(e.target.value)} rows={3} /></div>
-                  <Button onClick={handleAddCandidate} disabled={enriching || !formName.trim()} className="gap-2">
-                    {enriching ? <WavesLoader size="sm" /> : <><Plus className="h-4 w-4" /> Add Candidate</>}
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Filters */}
-            <div className="border-2 border-border bg-card p-5 space-y-4 shadow-xs">
-              <h2 className="text-sm font-semibold flex items-center gap-2"><Search className="h-4 w-4" /> Find Matching Candidates</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Seniority</label>
-                  <select value={seniority} onChange={(e) => setSeniority(e.target.value)} className="w-full h-10 border-2 border-input bg-background px-3 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-ring">
-                    <option value="">Any</option>
-                    <option value="Junior">Junior</option><option value="Mid">Mid</option><option value="Senior">Senior</option><option value="Lead">Lead</option><option value="Principal">Principal</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">Location</label><Input placeholder="e.g. London" value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} /></div>
-                <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground">Skills (comma-separated)</label><Input placeholder="e.g. React, Python" value={skillsFilter} onChange={(e) => setSkillsFilter(e.target.value)} /></div>
-              </div>
-              <Button onClick={handleFindCandidates} disabled={loading || !selectedRoleId} className="gap-2">
-                {loading ? <WavesLoader size="sm" /> : <><Search className="h-4 w-4" /> Find Candidates</>}
-              </Button>
-            </div>
-
-            {/* Pool Results */}
-            {loading ? (
-              <div className="flex justify-center py-16"><WavesLoader size="md" /></div>
-            ) : candidates.length > 0 ? (
-              <div className="space-y-3">
-                <h2 className="text-sm font-semibold text-muted-foreground">{candidates.length} candidate{candidates.length !== 1 ? "s" : ""} found</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {candidates.map((c) => (
-                    <div key={c.id} className="border-2 border-border bg-card p-4 shadow-xs space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-sm truncate">{c.name}</h3>
-                          {c.headline && <p className="text-xs text-muted-foreground truncate mt-0.5">{c.headline}</p>}
-                        </div>
-                        <Badge className={`${getScoreColor(c.relevance_score)} shrink-0 text-xs font-mono`}>{c.relevance_score}%</Badge>
-                      </div>
-                      {c.location && <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><MapPin className="h-3 w-3" />{c.location}</div>}
-                      {c.skills.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {c.skills.slice(0, 6).map((s) => <Badge key={s} variant="outline" className="text-[10px] font-normal">{s}</Badge>)}
-                          {c.skills.length > 6 && <Badge variant="outline" className="text-[10px] font-normal">+{c.skills.length - 6}</Badge>}
-                        </div>
-                      )}
-                      {c.experience.length > 0 && (
-                        <div className="text-xs text-muted-foreground space-y-0.5">
-                          {c.experience.slice(0, 2).map((exp, i) => <div key={i} className="flex items-center gap-1.5"><Briefcase className="h-3 w-3 shrink-0" /><span className="truncate">{exp.title} at {exp.company}</span></div>)}
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between pt-1 border-t border-border">
-                        {c.linkedin_url && <a href={c.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2">View LinkedIn</a>}
-                        <Button size="sm" className="h-7 text-xs gap-1.5 ml-auto" onClick={() => handleImport(c)} disabled={importingId === c.id}>
-                          {importingId === c.id ? <WavesLoader size="sm" /> : <><UserPlus className="h-3 w-3" /> Import</>}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : !loading && selectedRoleId ? (
-              <div className="border-2 border-dashed border-border p-12 text-center space-y-2">
-                <Award className="h-8 w-8 mx-auto text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">No candidates in the pool yet. Add profiles above to build your candidate pool.</p>
-              </div>
-            ) : null}
-          </TabsContent>
         </Tabs>
       </div>
 
