@@ -1,7 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Buffer } from "node:buffer";
-import mammoth from "npm:mammoth@1.8.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,74 +65,6 @@ Scoring: 50=average, 70=good, 85+=exceptional.
 Deduct for vagueness and unquantified claims.
 Reward specific metrics and clear impact statements.`;
 
-function cleanText(raw: string): string {
-  return raw
-    .replace(/\r\n/g, "\n")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n /g, "\n")
-    .replace(/ \n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-async function extractTextFromPdf(data: Uint8Array): Promise<string> {
-  // Decode PDF bytes as latin1 to access raw PDF operators
-  const raw = new TextDecoder("latin1").decode(data);
-  const textParts: string[] = [];
-
-  // Extract text from PDF content streams between BT/ET blocks
-  const btEtRegex = /BT\s([\s\S]*?)ET/g;
-  let match;
-  while ((match = btEtRegex.exec(raw)) !== null) {
-    const block = match[1];
-    // Tj operator
-    const tjRegex = /\(([^)]*)\)\s*Tj/g;
-    let tj;
-    while ((tj = tjRegex.exec(block)) !== null) {
-      textParts.push(tj[1]);
-    }
-    // TJ array operator
-    const tjArrRegex = /\[(.*?)\]\s*TJ/g;
-    let tjArr;
-    while ((tjArr = tjArrRegex.exec(raw.substring(match.index, match.index + match[0].length))) !== null) {
-      const innerRegex = /\(([^)]*)\)/g;
-      let inner;
-      while ((inner = innerRegex.exec(tjArr[1])) !== null) {
-        textParts.push(inner[1]);
-      }
-    }
-  }
-
-  // If we got structured text, use it
-  if (textParts.length > 0) {
-    return cleanText(
-      textParts.join(" ")
-        .replace(/\\n/g, "\n")
-        .replace(/\\r/g, "")
-        .replace(/\\t/g, " ")
-    );
-  }
-
-  // Fallback: extract readable ASCII sequences (for simple text-based PDFs)
-  const readable = raw.match(/[\x20-\x7E]{6,}/g) || [];
-  // Filter out PDF internal commands
-  const filtered = readable.filter(s =>
-    !s.startsWith("/") &&
-    !s.startsWith("<<") &&
-    !s.includes("endobj") &&
-    !s.includes("stream") &&
-    !s.includes("xref") &&
-    !s.match(/^\d+ \d+ obj/)
-  );
-  return cleanText(filtered.join(" ").substring(0, 15000));
-}
-
-async function extractTextFromDocx(data: Uint8Array): Promise<string> {
-  const buffer = Buffer.from(data);
-  const result = await mammoth.extractRawText({ buffer });
-  return cleanText(result.value);
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -146,43 +76,18 @@ serve(async (req) => {
       throw new Error("CLAUDE_API_KEY is not configured");
     }
 
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    const jobDescription = (formData.get("jobDescription") as string) || "";
+    const { text, jobDescription } = await req.json();
 
-    if (!file) {
+    if (!text || text.length < 20) {
       return new Response(
-        JSON.stringify({ error: "No file provided" }),
+        JSON.stringify({ error: "No resume text provided or text too short." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
-    const fileName = file.name.toLowerCase();
-
-    let extractedText = "";
-    if (fileName.endsWith(".pdf")) {
-      extractedText = await extractTextFromPdf(data);
-    } else if (fileName.endsWith(".docx")) {
-      extractedText = await extractTextFromDocx(data);
-    } else {
-      return new Response(
-        JSON.stringify({ error: "Unsupported file type. Please upload PDF or DOCX." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!extractedText || extractedText.length < 20) {
-      return new Response(
-        JSON.stringify({ error: "Could not extract meaningful text from the file. Please ensure the PDF contains selectable text (not scanned images)." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    let userMessage = `Analyze this CV/Resume:\n\n${extractedText}`;
-    if (jobDescription.trim()) {
-      userMessage = `Evaluate this CV against this role: ${jobDescription.trim()}\n\nCV/Resume:\n\n${extractedText}`;
+    let userMessage = `Analyze this CV/Resume:\n\n${text}`;
+    if (jobDescription) {
+      userMessage = `Evaluate this CV against this role: ${jobDescription}\n\nCV/Resume:\n\n${text}`;
     }
 
     const startTime = Date.now();
