@@ -11,7 +11,7 @@ import Candidates from "./pages/Candidates";
 import CandidateProfile from "./pages/CandidateProfile";
 import Roles from "./pages/Roles";
 import ROIDashboard from "./pages/ROIDashboard";
-import BatchUpload from "./pages/BatchUpload";
+// BatchUpload is now integrated into the Analyser page
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,7 +31,7 @@ const App = () => (
               <Route path="/candidates/:id" element={<CandidateProfile />} />
               <Route path="/roles" element={<Roles />} />
               <Route path="/roi" element={<ROIDashboard />} />
-              <Route path="/batch" element={<BatchUpload />} />
+              {/* /batch now redirects to /analyze */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
