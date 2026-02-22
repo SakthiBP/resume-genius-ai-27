@@ -107,22 +107,32 @@ serve(async (req) => {
       },
     });
 
-    // Convert plain text to HTML for proper email rendering
-    // Encode all non-ASCII characters as HTML entities to avoid MIME artefacts
-    const htmlBody = email_body
+    // Sanitise non-ASCII characters to prevent quoted-printable MIME artefacts
+    // that break rendering in Outlook and other email clients.
+    function toAscii(str: string): string {
+      return str
+        .replace(/[\u2018\u2019\u201A]/g, "'")   // smart single quotes
+        .replace(/[\u201C\u201D\u201E]/g, '"')    // smart double quotes
+        .replace(/[\u2013\u2014]/g, "-")           // en-dash, em-dash
+        .replace(/\u2026/g, "...")                 // ellipsis
+        .replace(/\u00A0/g, " ")                   // non-breaking space
+        .replace(/[^\x00-\x7F]/g, "");             // strip any remaining non-ASCII
+    }
+
+    const safeSubject = toAscii(subject);
+
+    // Convert plain text body to HTML, keeping everything ASCII-safe
+    const htmlBody = toAscii(email_body)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;")
-      .replace(/[^\x00-\x7F]/g, (ch: string) => `&#${ch.codePointAt(0)};`)
       .replace(/\n/g, "<br>\n");
 
-    // Send HTML only — avoids plain-text MIME encoding issues with special characters
+    // Send HTML only with ASCII-safe content — no quoted-printable needed
     await client.send({
       from: fromAddress,
       to: candidate_email,
-      subject: subject,
+      subject: safeSubject,
       html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><div style="font-family: Arial, sans-serif; font-size: 14px; color: #222; line-height: 1.6;">${htmlBody}</div></body></html>`,
     });
 
