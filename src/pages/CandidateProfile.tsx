@@ -3,8 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import EmailPreviewModal from "@/components/EmailPreviewModal";
+import { analysisManager } from "@/lib/analysisManager";
+import type { AnalysisJob } from "@/lib/analysisManager";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import EmailPreviewModal from "@/components/EmailPreviewModal";
 import WavesLoader from "@/components/WavesLoader";
 import { getEmailTemplate } from "@/lib/emailTemplates";
 import { Badge } from "@/components/ui/badge";
@@ -481,20 +483,14 @@ const CandidateProfile = () => {
     })();
   }, [id]);
 
-  const runAnalysis = async (jobContext: string | null, roleId: string | null = selectedRoleId) => {
-    if (!candidate) return;
-    setReanalysing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("analyze-cv", {
-        body: {
-          cv_text: candidate.cv_text,
-          job_description: jobContext,
-        },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+  // Track current job subscription for cleanup
+  const jobUnsubRef = useRef<(() => void) | null>(null);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
-      // Store in cache
+  /** Apply completed analysis results to candidate state */
+  const applyAnalysisResult = useCallback((data: any, jobContext: string | null, roleId: string | null) => {
+    // Store in local cache for instant re-switching
+    if (candidate) {
       const cacheKey = makeCacheKey(roleId, candidate.cv_text, jobContext);
       analysisCacheRef.current.set(cacheKey, {
         analysis: data,
@@ -504,53 +500,87 @@ const CandidateProfile = () => {
         email: data.email || candidate.email,
         jobContext,
       });
+    }
 
-      await supabase
-        .from("candidates")
-        .update({
-          analysis_json: data,
-          overall_score: data.overall_score?.composite_score ?? 0,
-          recommendation: data.overall_score?.recommendation ?? "maybe",
-          candidate_name: data.candidate_name || candidate.candidate_name,
-          email: data.email || candidate.email,
-          job_description: jobContext,
-        })
-        .eq("id", candidate.id);
+    setCandidate((prev) =>
+      prev
+        ? {
+            ...prev,
+            analysis_json: data as AnalysisResult,
+            overall_score: data.overall_score?.composite_score ?? 0,
+            recommendation: data.overall_score?.recommendation ?? "maybe",
+            candidate_name: data.candidate_name || prev.candidate_name,
+            email: data.email || prev.email,
+            job_description: jobContext,
+          }
+        : prev
+    );
+  }, [candidate, makeCacheKey]);
 
-      setCandidate((prev) =>
-        prev
-          ? {
-              ...prev,
-              analysis_json: data as AnalysisResult,
-              overall_score: data.overall_score?.composite_score ?? 0,
-              recommendation: data.overall_score?.recommendation ?? "maybe",
-              candidate_name: data.candidate_name || prev.candidate_name,
-              email: data.email || prev.email,
-              job_description: jobContext,
-            }
-          : prev
-      );
-      toast({ title: "Re-analysis complete", description: "The candidate profile has been updated." });
+  /** Subscribe to a job and handle its completion */
+  const watchJob = useCallback((job: AnalysisJob, roleId: string | null) => {
+    setActiveJobId(job.id);
+    setReanalysing(true);
+
+    // Clean up previous subscription
+    if (jobUnsubRef.current) jobUnsubRef.current();
+
+    const handleJobUpdate = (updatedJob: AnalysisJob) => {
+      if (updatedJob.status === "completed" && updatedJob.result_json) {
+        applyAnalysisResult(updatedJob.result_json, updatedJob.job_context, roleId);
+        setReanalysing(false);
+        setActiveJobId(null);
+        toast({ title: "Analysis complete", description: "The candidate profile has been updated." });
+      } else if (updatedJob.status === "failed") {
+        setReanalysing(false);
+        setActiveJobId(null);
+        toast({ variant: "destructive", title: "Analysis failed", description: updatedJob.error_message || "Could not analyse." });
+      }
+    };
+
+    jobUnsubRef.current = analysisManager.subscribeToJob(job.id, handleJobUpdate);
+
+    // Also poll every 5s as fallback
+    const pollInterval = setInterval(async () => {
+      const polled = await analysisManager.pollJob(job.id);
+      if (polled && (polled.status === "completed" || polled.status === "failed")) {
+        clearInterval(pollInterval);
+        handleJobUpdate(polled);
+      }
+    }, 5000);
+
+    // Cleanup poll on unmount (subscription stays active via manager)
+    return () => clearInterval(pollInterval);
+  }, [applyAnalysisResult]);
+
+  /** Start a background analysis job */
+  const runAnalysis = async (jobContext: string | null, roleId: string | null = selectedRoleId) => {
+    if (!candidate) return;
+    setReanalysing(true);
+    try {
+      const job = await analysisManager.startJob(candidate.id, roleId, candidate.cv_text, jobContext);
+      watchJob(job, roleId);
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Re-analysis failed", description: err.message || "Could not re-analyse." });
-    } finally {
       setReanalysing(false);
+      toast({ variant: "destructive", title: "Analysis failed", description: err.message || "Could not start analysis." });
     }
   };
 
-  /** Force re-analysis (bypass cache) */
-  const reanalyse = () => {
+  /** Force re-analysis (bypass cache + invalidate DB) */
+  const reanalyse = async () => {
     if (!candidate) return;
     const jobContext = selectedRoleId
       ? buildJobContext(roles.find((r) => r.id === selectedRoleId)!)
       : candidate.job_description || null;
-    // Invalidate cache entry
+    // Invalidate local cache
     const cacheKey = makeCacheKey(selectedRoleId, candidate.cv_text, jobContext);
     analysisCacheRef.current.delete(cacheKey);
+    // Invalidate DB jobs
+    await analysisManager.invalidateJob(candidate.id, selectedRoleId, candidate.cv_text, jobContext);
     runAnalysis(jobContext, selectedRoleId);
   };
 
-  const handleRoleSwitch = (roleId: string | null) => {
+  const handleRoleSwitch = async (roleId: string | null) => {
     setSelectedRoleId(roleId);
     if (!candidate) return;
 
@@ -558,12 +588,10 @@ const CandidateProfile = () => {
       ? buildJobContext(roles.find((r) => r.id === roleId)!)
       : null;
 
-    // Check cache first
+    // 1. Check local cache first (instant)
     const cacheKey = makeCacheKey(roleId, candidate.cv_text, jobContext);
     const cached = analysisCacheRef.current.get(cacheKey);
-
     if (cached) {
-      // Instant switch — no API call
       setCandidate((prev) =>
         prev
           ? {
@@ -580,9 +608,42 @@ const CandidateProfile = () => {
       return;
     }
 
-    // Cache miss — run analysis
+    // 2. Check DB for existing job
+    const existingJob = await analysisManager.findExistingJob(candidate.id, roleId, candidate.cv_text, jobContext);
+    if (existingJob) {
+      if (existingJob.status === "completed" && existingJob.result_json) {
+        // Instant display from DB
+        applyAnalysisResult(existingJob.result_json, jobContext, roleId);
+        return;
+      }
+      if (existingJob.status === "processing") {
+        // Subscribe to the in-progress job
+        watchJob(existingJob, roleId);
+        return;
+      }
+    }
+
+    // 3. No cache, no existing job → start new background analysis
     runAnalysis(jobContext, roleId);
   };
+
+  // On mount: check if there's an in-progress job for this candidate
+  useEffect(() => {
+    if (!candidate) return;
+    (async () => {
+      const existingJob = await analysisManager.findExistingJob(
+        candidate.id, selectedRoleId, candidate.cv_text,
+        candidate.job_description || null
+      );
+      if (existingJob && existingJob.status === "processing") {
+        watchJob(existingJob, selectedRoleId);
+      }
+    })();
+    return () => {
+      if (jobUnsubRef.current) jobUnsubRef.current();
+    };
+  }, [candidate?.id]);
+
 
   const handleDeleteCandidate = async () => {
     if (!candidate) return;

@@ -74,14 +74,28 @@ const Index = () => {
         jobContext = jobContext ? `${roleParts}\n\n---\n\nAdditional context:\n${jobContext}` : roleParts;
       }
 
-      const { data, error } = await supabase.functions.invoke("analyze-cv", {
-        body: {
+      // Use raw fetch so navigation doesn't cancel the request
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-cv`;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${anonKey}`,
+          apikey: anonKey,
+        },
+        body: JSON.stringify({
           cv_text: extractedText,
           job_description: jobContext,
-        },
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error(errBody.error || `Analysis failed (${response.status})`);
+      }
+
+      const data = await response.json();
       if (data?.error) throw new Error(data.error);
 
       setAnalysisResult(data as AnalysisResult);
