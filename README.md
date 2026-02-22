@@ -1,4 +1,5 @@
-About
+About:
+URL: https://swimr776.lovable.app
 SWIMR is an AI recruitment screening tool that analyses candidate CVs against job roles in seconds. Upload a CV, select a role, and get a full candidate breakdown — scores, skills, red flags, and a hire recommendation — in under 10 seconds for less than 4p.
 Built for HR recruiters who spend 20+ minutes manually reviewing each CV. SWIMR does it in 8 seconds.
 
