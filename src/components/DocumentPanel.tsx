@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import FileUploadZone from "./FileUploadZone";
 import StagingQueuePanel from "./StagingQueuePanel";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useStagingQueue, type StagedFile } from "@/contexts/StagingQueueContext";
+import { useRolesCache } from "@/hooks/useRolesCache";
 
 interface SelectedRole {
   id: string;
@@ -48,27 +48,11 @@ const DocumentPanel = ({
   selectedRole,
   onSelectedRoleChange,
 }: DocumentPanelProps) => {
-  const [roles, setRoles] = useState<SelectedRole[]>([]);
+  const { data: roles = [] } = useRolesCache();
   const [roleError, setRoleError] = useState(false);
   const [sourceTab, setSourceTab] = useState<"upload" | "queue">("upload");
   const { getPendingFiles } = useStagingQueue();
   const [selectedQueueFile, setSelectedQueueFile] = useState<StagedFile | null>(null);
-
-  useEffect(() => {
-    const fetchRoles = async () => {
-      const { data } = await supabase.from("roles").select("id, job_title, description, target_universities, required_skills").order("job_title");
-      if (data) {
-        setRoles(
-          data.map((r: any) => ({
-            ...r,
-            target_universities: Array.isArray(r.target_universities) ? r.target_universities : [],
-            required_skills: Array.isArray(r.required_skills) ? r.required_skills : [],
-          }))
-        );
-      }
-    };
-    fetchRoles();
-  }, []);
 
   useEffect(() => {
     if (selectedRole) setRoleError(false);
