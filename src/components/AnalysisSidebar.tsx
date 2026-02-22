@@ -203,7 +203,7 @@ function mapResultToInsights(r: AnalysisResult, hasRole: boolean): Insight[] {
     for (const gf of r.green_flags.slice(0, 5)) {
       insights.push({
         id: String(++id),
-        type: "strength" as any,
+        type: "strength",
         category: "Green Flag",
         title: gf.description,
         detail: `${gf.evidence}\n\nRole relevance: ${gf.role_relevance}`,

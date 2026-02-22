@@ -3,7 +3,7 @@ import { AlertTriangle, Lightbulb, Zap, Briefcase, ChevronDown, GraduationCap, G
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
-export type InsightType = "red-flag" | "suggestion" | "skill" | "experience" | "education" | "right-to-work" | "jd-match";
+export type InsightType = "red-flag" | "suggestion" | "skill" | "experience" | "education" | "right-to-work" | "jd-match" | "strength";
 
 export interface Insight {
   id: string;
@@ -31,6 +31,7 @@ const typeConfig: Record<InsightType, { icon: typeof AlertTriangle; label: strin
   education: { icon: GraduationCap, label: "Education", accent: "text-score-blue", bgAccent: "bg-score-blue/10" },
   "right-to-work": { icon: Globe, label: "Right to Work", accent: "text-score-yellow", bgAccent: "bg-score-yellow/10" },
   "jd-match": { icon: FileSearch, label: "JD Match", accent: "text-score-blue", bgAccent: "bg-score-blue/10" },
+  "strength": { icon: Zap, label: "Green Flag", accent: "text-score-green", bgAccent: "bg-score-green/10" },
 };
 
 const severityColors: Record<string, string> = {
