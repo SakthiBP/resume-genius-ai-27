@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import WavesLoader from "@/components/WavesLoader";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Trash2, Zap, FileText, PackageCheck } from "lucide-react";
+import { Upload, Trash2, Zap, FileText, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function formatBytes(bytes: number) {
@@ -102,7 +102,7 @@ const BatchUpload = () => {
         <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <PackageCheck className="h-6 w-6 text-muted-foreground" />
+            <Package className="h-6 w-6 text-muted-foreground" />
             <h1 className="text-2xl font-bold text-foreground uppercase">Batch Upload & Queue</h1>
             <Badge variant="secondary" className="text-xs">{files.length} files</Badge>
           </div>
