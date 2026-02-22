@@ -525,7 +525,7 @@ function MetricCard({ icon, label, value, accent, delay = 0 }: {
 }) {
   return (
     <Card
-      className={`border border-border bg-card animate-fade-in-up ${accent ? "ring-1 ring-score-green/30" : ""}`}
+      className="border border-border bg-card animate-fade-in-up"
       style={{ animationDelay: `${delay * 0.06}s` }}
     >
       <CardContent className="p-4 flex flex-col gap-1.5">
