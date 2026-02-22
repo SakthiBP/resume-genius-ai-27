@@ -108,18 +108,22 @@ serve(async (req) => {
     });
 
     // Convert plain text to HTML for proper email rendering
+    // Encode all non-ASCII characters as HTML entities to avoid MIME artefacts
     const htmlBody = email_body
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;")
+      .replace(/[^\x00-\x7F]/g, (ch: string) => `&#${ch.codePointAt(0)};`)
       .replace(/\n/g, "<br>\n");
 
+    // Send HTML only — avoids plain-text MIME encoding issues with special characters
     await client.send({
       from: fromAddress,
       to: candidate_email,
       subject: subject,
-      content: email_body,
-      html: `<div style="font-family: Arial, sans-serif; font-size: 14px; color: #222; line-height: 1.6;">${htmlBody}</div>`,
+      html: `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><div style="font-family: Arial, sans-serif; font-size: 14px; color: #222; line-height: 1.6;">${htmlBody}</div></body></html>`,
     });
 
     await client.close();
