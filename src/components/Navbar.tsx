@@ -30,9 +30,7 @@ const Navbar = ({ score = null }: NavbarProps) => {
         </Link>
       </div>
 
-      <div className="flex-1 flex justify-center">
-        {score !== null && <OverallScoreBadge score={score} />}
-      </div>
+      <div className="flex-1" />
 
       <div className="min-w-[200px] flex items-center justify-end gap-2">
         <Link to="/analyze">
