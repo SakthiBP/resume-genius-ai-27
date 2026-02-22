@@ -14,13 +14,23 @@ serve(async (req) => {
   }
 
   try {
-    const GMAIL_USER = Deno.env.get("GMAIL_USER");
-    const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
-    const RECRUITER_NAME = Deno.env.get("RECRUITER_NAME") || "Recruitment Team";
+    const GMAIL_USER = Deno.env.get("GMAIL_USER")?.trim();
+    const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD")?.trim();
+    const RECRUITER_NAME = (Deno.env.get("RECRUITER_NAME") || "Recruitment Team").trim();
 
     if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
       throw new Error("Gmail credentials not configured");
     }
+
+    // Validate GMAIL_USER looks like an email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(GMAIL_USER)) {
+      throw new Error(`GMAIL_USER secret is not a valid email address: "${GMAIL_USER}"`);
+    }
+
+    // Build from address — sanitise recruiter name to avoid SMTP issues
+    const sanitisedName = RECRUITER_NAME.replace(/[<>"]/g, "").trim();
+    const fromAddress = sanitisedName ? `${sanitisedName} <${GMAIL_USER}>` : GMAIL_USER;
 
     const body = await req.json();
     const {
@@ -105,7 +115,7 @@ serve(async (req) => {
       .replace(/\n/g, "<br>\n");
 
     await client.send({
-      from: `${RECRUITER_NAME} <${GMAIL_USER}>`,
+      from: fromAddress,
       to: candidate_email,
       subject: subject,
       content: email_body,
