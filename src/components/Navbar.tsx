@@ -1,9 +1,10 @@
-import { Moon, Sun, Users, Briefcase, TrendingUp, FileText, Compass } from "lucide-react";
+import { Moon, Sun, Users, Briefcase, TrendingUp, FileText, Compass, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import OverallScoreBadge from "./OverallScoreBadge";
 import SwimLogo from "./SwimLogo";
 import { useTheme } from "@/hooks/useTheme";
+import { useAnalyser } from "@/contexts/AnalyserContext";
 
 interface NavbarProps {
   score?: number | null;
@@ -12,6 +13,7 @@ interface NavbarProps {
 const Navbar = ({ score = null }: NavbarProps) => {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
+  const { isAnalysing } = useAnalyser();
 
   return (
     <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0">
@@ -35,8 +37,18 @@ const Navbar = ({ score = null }: NavbarProps) => {
       <div className="min-w-[200px] flex items-center justify-end gap-2">
         <Link to="/analyze">
           <Button variant={location.pathname === "/analyze" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
-            <FileText className="h-3.5 w-3.5" />
+            {isAnalysing ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            ) : (
+              <FileText className="h-3.5 w-3.5" />
+            )}
             Analyser
+            {isAnalysing && (
+              <span className="relative flex h-2 w-2 ml-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+              </span>
+            )}
           </Button>
         </Link>
         <Link to="/candidates">
