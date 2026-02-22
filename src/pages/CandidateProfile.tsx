@@ -76,8 +76,8 @@ interface SavedRole {
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending", color: "score-badge-muted" },
   { value: "deny", label: "Denied", color: "bg-score-red text-destructive-foreground" },
-  { value: "online_assessment", label: "OA Scheduled", color: "bg-score-yellow text-foreground" },
-  { value: "interview", label: "Interview Scheduled", color: "bg-score-blue text-destructive-foreground" },
+  { value: "online_assessment", label: "OA", color: "bg-score-yellow text-foreground" },
+  { value: "interview", label: "Interview", color: "bg-score-blue text-destructive-foreground" },
   { value: "hire", label: "Hired", color: "bg-score-green text-destructive-foreground" },
 ];
 

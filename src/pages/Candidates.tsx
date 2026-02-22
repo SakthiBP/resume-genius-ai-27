@@ -37,8 +37,8 @@ interface Role {
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending", color: "score-badge-muted" },
   { value: "deny", label: "Denied", color: "bg-score-red text-destructive-foreground" },
-  { value: "online_assessment", label: "OA Scheduled", color: "bg-score-yellow text-foreground" },
-  { value: "interview", label: "Interview Scheduled", color: "bg-score-blue text-destructive-foreground" },
+  { value: "online_assessment", label: "OA", color: "bg-score-yellow text-foreground" },
+  { value: "interview", label: "Interview", color: "bg-score-blue text-destructive-foreground" },
   { value: "hire", label: "Hired", color: "bg-score-green text-destructive-foreground" },
 ];
 
@@ -225,8 +225,8 @@ const Candidates = () => {
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="deny">Denied</SelectItem>
-                    <SelectItem value="online_assessment">OA Scheduled</SelectItem>
-                    <SelectItem value="interview">Interview Scheduled</SelectItem>
+                    <SelectItem value="online_assessment">OA</SelectItem>
+                    <SelectItem value="interview">Interview</SelectItem>
                     <SelectItem value="hire">Hired</SelectItem>
                   </SelectContent>
                 </Select>
