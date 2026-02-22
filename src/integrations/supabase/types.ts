@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      analysis_jobs: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          cv_hash: string
+          error_message: string | null
+          id: string
+          job_context: string | null
+          job_context_hash: string
+          result_json: Json | null
+          role_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          cv_hash: string
+          error_message?: string | null
+          id?: string
+          job_context?: string | null
+          job_context_hash?: string
+          result_json?: Json | null
+          role_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          cv_hash?: string
+          error_message?: string | null
+          id?: string
+          job_context?: string | null
+          job_context_hash?: string
+          result_json?: Json | null
+          role_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       candidate_recommendations: {
         Row: {
           created_at: string

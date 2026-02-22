@@ -306,6 +306,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let job_id: string | undefined;
   try {
     const CLAUDE_API_KEY = Deno.env.get("CLAUDE_API_KEY");
     if (!CLAUDE_API_KEY) {
@@ -314,6 +315,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const { cv_text, job_description } = body;
+    job_id = body.job_id;
 
     console.log("Incoming request body keys:", Object.keys(body));
     console.log("job_description received:", job_description ? job_description.substring(0, 200) + "..." : "NONE");
@@ -462,8 +464,33 @@ serve(async (req) => {
         });
         console.log("Inserted new candidate:", candidateName);
       }
+
+      // Update analysis job record if job_id was provided
+      if (job_id) {
+        await supabaseClient
+          .from('analysis_jobs')
+          .update({
+            status: 'completed',
+            result_json: analysis,
+          })
+          .eq('id', job_id);
+        console.log("Updated analysis job:", job_id, "→ completed");
+      }
     } catch (dbErr) {
       console.error("Failed to save candidate:", dbErr);
+      // Still try to update the job as failed if we can
+      if (job_id) {
+        try {
+          const supabaseClient = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+          );
+          await supabaseClient
+            .from('analysis_jobs')
+            .update({ status: 'failed', error_message: String(dbErr) })
+            .eq('id', job_id);
+        } catch (_) { /* best-effort */ }
+      }
     }
 
     return new Response(JSON.stringify(analysis), {
@@ -471,6 +498,21 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in analyze-cv:", error);
+
+    // Update job as failed if job_id present
+    if (typeof job_id !== 'undefined' && job_id) {
+      try {
+        const supabaseClient = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+        await supabaseClient
+          .from('analysis_jobs')
+          .update({ status: 'failed', error_message: error.message || 'Unknown error' })
+          .eq('id', job_id);
+      } catch (_) { /* best-effort */ }
+    }
+
     return new Response(
       JSON.stringify({ error: error.message || "An error occurred during analysis" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
