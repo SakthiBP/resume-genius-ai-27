@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { StagingQueueProvider } from "@/contexts/StagingQueueContext";
 import { AnalyserProvider } from "@/contexts/AnalyserContext";
 import { BatchAnalysisProvider } from "@/contexts/BatchAnalysisContext";
+import { DiscoverProvider } from "@/contexts/DiscoverContext";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Candidates from "./pages/Candidates";
@@ -27,6 +28,7 @@ const App = () => (
       <StagingQueueProvider>
         <AnalyserProvider>
           <BatchAnalysisProvider>
+            <DiscoverProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -49,6 +51,7 @@ const App = () => (
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
+            </DiscoverProvider>
           </BatchAnalysisProvider>
         </AnalyserProvider>
       </StagingQueueProvider>
