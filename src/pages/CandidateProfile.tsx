@@ -180,12 +180,7 @@ function generateReport(r: AnalysisResult): string {
   report += `Sentiment analysis indicates a ${r.sentiment_analysis.tone} tone with ${r.sentiment_analysis.confidence_level} confidence. `;
 
   if (flagCount > 0) {
-    report += `${flagCount} red flag${flagCount !== 1 ? "s" : ""} ${flagCount !== 1 ? "were" : "was"} identified, including `;
-    const flagTypes: string[] = [];
-    if (r.red_flags.employment_gaps.length) flagTypes.push(`${r.red_flags.employment_gaps.length} employment gap${r.red_flags.employment_gaps.length !== 1 ? "s" : ""}`);
-    if (r.red_flags.inconsistencies.length) flagTypes.push(`${r.red_flags.inconsistencies.length} inconsistenc${r.red_flags.inconsistencies.length !== 1 ? "ies" : "y"}`);
-    if (r.red_flags.vague_descriptions.length) flagTypes.push(`${r.red_flags.vague_descriptions.length} vague description${r.red_flags.vague_descriptions.length !== 1 ? "s" : ""}`);
-    report += flagTypes.join(", ") + ". ";
+    report += `${flagCount} red flag${flagCount !== 1 ? "s" : ""} ${flagCount !== 1 ? "were" : "was"} identified. `;
   } else {
     report += "No red flags were identified. ";
   }
@@ -576,10 +571,20 @@ const CandidateProfile = () => {
       ].filter((d) => d.value > 0);
 
   const severityCounts = { low: 0, medium: 0, high: 0 };
+  const hasStructuredFlags = !isImported && r.red_flags && Array.isArray(r.red_flags.flags) && r.red_flags.flags.length > 0;
   if (!isImported && r.red_flags) {
-    (r.red_flags.employment_gaps || []).forEach((g: any) => severityCounts[g.severity as keyof typeof severityCounts]++);
-    (r.red_flags.inconsistencies || []).forEach(() => severityCounts.medium++);
-    (r.red_flags.vague_descriptions || []).forEach(() => severityCounts.medium++);
+    if (hasStructuredFlags) {
+      // New v2 structured flags
+      for (const f of r.red_flags.flags) {
+        if (f.severity === "disqualifying") severityCounts.high++;
+        else severityCounts.medium++;
+      }
+    } else {
+      // Legacy format
+      (r.red_flags.employment_gaps || []).forEach((g: any) => severityCounts[g.severity as keyof typeof severityCounts]++);
+      (r.red_flags.inconsistencies || []).forEach(() => severityCounts.medium++);
+      (r.red_flags.vague_descriptions || []).forEach(() => severityCounts.medium++);
+    }
   }
   const flagPieData = [
     { name: "Low", value: severityCounts.low, colour: CHART_COLOURS.yellow },
@@ -903,9 +908,30 @@ const CandidateProfile = () => {
             </h3>
             {r.red_flags.red_flag_count === 0 ? (
               <p className="text-sm text-muted-foreground">No red flags detected.</p>
+            ) : hasStructuredFlags ? (
+              /* New v2 structured flags */
+              <div className="space-y-4">
+                {r.red_flags.flags.map((flag: any, i: number) => (
+                  <div key={`flag-${i}`} className="border border-border p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={`text-[10px] shrink-0 pointer-events-none ${flag.severity === "disqualifying" ? "score-badge-red" : "score-badge-yellow"}`}>
+                        {flag.severity}
+                      </Badge>
+                      <Badge variant="secondary" className="text-[10px] shrink-0 pointer-events-none capitalize">
+                        {flag.category.replace(/_/g, " ")}
+                      </Badge>
+                    </div>
+                    <p className="text-sm font-medium text-foreground">{flag.description}</p>
+                    <p className="text-xs text-muted-foreground"><span className="font-medium">Evidence:</span> {flag.evidence}</p>
+                    <p className="text-xs text-muted-foreground"><span className="font-medium">Why it matters:</span> {flag.role_relevance}</p>
+                    <p className="text-xs text-muted-foreground italic"><span className="font-medium">Follow-up:</span> {flag.follow_up_question}</p>
+                  </div>
+                ))}
+              </div>
             ) : (
+              /* Legacy format */
               <div className="space-y-3">
-                {r.red_flags.employment_gaps.map((g: any, i: number) => (
+                {(r.red_flags.employment_gaps || []).map((g: any, i: number) => (
                   <div key={`gap-${i}`} className="flex items-start gap-3 text-sm">
                     <Badge variant="outline" className={`text-[10px] shrink-0 pointer-events-none ${g.severity === "high" ? "score-badge-red" : "score-badge-yellow"}`}>
                       {g.severity}
@@ -913,13 +939,13 @@ const CandidateProfile = () => {
                     <span className="text-foreground/80">Employment gap: {g.period} ({g.duration_months} months)</span>
                   </div>
                 ))}
-                {r.red_flags.inconsistencies.map((inc: string, i: number) => (
+                {(r.red_flags.inconsistencies || []).map((inc: string, i: number) => (
                   <div key={`inc-${i}`} className="flex items-start gap-3 text-sm">
                     <Badge variant="outline" className="text-[10px] shrink-0 pointer-events-none score-badge-yellow">medium</Badge>
                     <span className="text-foreground/80">{inc}</span>
                   </div>
                 ))}
-                {r.red_flags.vague_descriptions.map((v: string, i: number) => (
+                {(r.red_flags.vague_descriptions || []).map((v: string, i: number) => (
                   <div key={`vague-${i}`} className="flex items-start gap-3 text-sm">
                     <Badge variant="outline" className="text-[10px] shrink-0 pointer-events-none score-badge-yellow">medium</Badge>
                     <span className="text-foreground/80">{v}</span>
@@ -927,6 +953,44 @@ const CandidateProfile = () => {
                 ))}
               </div>
             )}
+          </section>
+          )}
+
+          {/* === GREEN FLAGS === */}
+          {!isImported && r.green_flags && r.green_flags.length > 0 && (
+          <section className="bg-card border border-border p-6">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Zap className="h-4 w-4 text-score-green" />
+              GREEN FLAGS ({r.green_flags.length})
+            </h3>
+            <div className="space-y-4">
+              {r.green_flags.map((gf: any, i: number) => (
+                <div key={`gf-${i}`} className="border border-score-green/20 bg-score-green/5 p-4 space-y-1.5">
+                  <p className="text-sm font-medium text-foreground">{gf.description}</p>
+                  <p className="text-xs text-muted-foreground"><span className="font-medium">Evidence:</span> {gf.evidence}</p>
+                  <p className="text-xs text-muted-foreground"><span className="font-medium">Role relevance:</span> {gf.role_relevance}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+          )}
+
+          {/* === NEUTRAL NOTES === */}
+          {!isImported && r.neutral_notes && r.neutral_notes.length > 0 && (
+          <section className="bg-card border border-border p-6">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-muted-foreground" />
+              NEUTRAL NOTES ({r.neutral_notes.length})
+            </h3>
+            <div className="space-y-4">
+              {r.neutral_notes.map((nn: any, i: number) => (
+                <div key={`nn-${i}`} className="border border-border bg-muted/30 p-4 space-y-1.5">
+                  <p className="text-sm font-medium text-foreground">{nn.description}</p>
+                  <p className="text-xs text-muted-foreground">{nn.context}</p>
+                  <p className="text-xs text-muted-foreground italic"><span className="font-medium">Action:</span> {nn.suggested_action}</p>
+                </div>
+              ))}
+            </div>
           </section>
           )}
 

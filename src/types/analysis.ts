@@ -1,7 +1,37 @@
+export interface RedFlagItem {
+  severity: "disqualifying" | "concerning";
+  category: string;
+  description: string;
+  evidence: string;
+  role_relevance: string;
+  follow_up_question: string;
+}
+
+export interface GreenFlagItem {
+  description: string;
+  evidence: string;
+  role_relevance: string;
+}
+
+export interface NeutralNoteItem {
+  description: string;
+  context: string;
+  suggested_action: string;
+}
+
 export interface AnalysisResult {
   candidate_name: string;
   email: string | null;
   summary: string;
+  role_calibration?: {
+    role_title: string;
+    role_level: string;
+    required_years: number | null;
+    must_have_skills: string[];
+    nice_to_have_skills: string[];
+    location_requirements: string | null;
+    scope_expectations: string | null;
+  };
   sentiment_analysis: {
     score: number;
     tone: "confident" | "neutral" | "uncertain";
@@ -81,16 +111,25 @@ export interface AnalysisResult {
   red_flags: {
     weight: number;
     score: number;
-    employment_gaps: Array<{
+    /** New structured flags array (v2 prompt) */
+    flags?: RedFlagItem[];
+    /** @deprecated Legacy fields — kept for backward compat with old analyses */
+    employment_gaps?: Array<{
       period: string;
       duration_months: number;
       severity: "low" | "medium" | "high";
     }>;
-    inconsistencies: string[];
-    vague_descriptions: string[];
+    /** @deprecated */
+    inconsistencies?: string[];
+    /** @deprecated */
+    vague_descriptions?: string[];
     red_flag_count: number;
     notes: string;
   };
+  /** New: strengths that directly improve suitability (v2 prompt) */
+  green_flags?: GreenFlagItem[];
+  /** New: items needing clarification but not risks (v2 prompt) */
+  neutral_notes?: NeutralNoteItem[];
   overall_score: {
     section_scores: {
       job_description_match: { score: number; weight: number; weighted_score: number };
