@@ -7,6 +7,7 @@ import SwimLogo from "./SwimLogo";
 import { useTheme } from "@/hooks/useTheme";
 import { useAnalyser } from "@/contexts/AnalyserContext";
 import { useBatchAnalysis } from "@/contexts/BatchAnalysisContext";
+import { useDiscover } from "@/contexts/DiscoverContext";
 
 interface NavbarProps {
   score?: number | null;
@@ -17,6 +18,7 @@ const Navbar = ({ score = null }: NavbarProps) => {
   const location = useLocation();
   const { isAnalysing } = useAnalyser();
   const { isRunning, completedCount, totalCount, currentItem } = useBatchAnalysis();
+  const { ghSearching } = useDiscover();
 
   const showActivity = isAnalysing || isRunning;
 
@@ -75,6 +77,12 @@ const Navbar = ({ score = null }: NavbarProps) => {
           <Button variant={location.pathname === "/candidate-recommendations" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
             <Compass className="h-3.5 w-3.5" />
             Discover
+            {ghSearching && (
+              <span className="relative flex h-2 w-2 ml-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-score-green opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-score-green" />
+              </span>
+            )}
           </Button>
         </Link>
         <Link to="/roles">
