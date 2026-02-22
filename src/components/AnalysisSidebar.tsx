@@ -2,7 +2,7 @@ import ScoreBar from "./ScoreBar";
 import InsightCard, { type Insight } from "./InsightCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Timer, DollarSign, Clock, GraduationCap } from "lucide-react";
+import { Timer, DollarSign, Clock, GraduationCap, CheckCircle2, HelpCircle } from "lucide-react";
 import type { AnalysisResult } from "@/types/analysis";
 
 interface AnalysisSidebarProps {
@@ -44,6 +44,9 @@ function getSkillMatchPct(r: AnalysisResult): number | null {
 }
 function getRedFlagGaps(r: AnalysisResult) {
   return r.red_flags.employment_gaps ?? [];
+}
+function hasNewRedFlags(r: AnalysisResult): boolean {
+  return Array.isArray(r.red_flags.flags) && r.red_flags.flags.length > 0;
 }
 
 /* ── Eligibility colour helper ── */
@@ -160,23 +163,64 @@ function mapResultToInsights(r: AnalysisResult, hasRole: boolean): Insight[] {
     });
   }
 
-  // Red flags
+  // Red flags — support both new structured flags and legacy format
   if (r.red_flags.red_flag_count > 0) {
-    for (const gap of getRedFlagGaps(r)) {
+    if (hasNewRedFlags(r)) {
+      // New v2 structured flags
+      for (const flag of r.red_flags.flags!) {
+        insights.push({
+          id: String(++id),
+          type: "red-flag",
+          category: flag.category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+          title: flag.description,
+          detail: `${flag.evidence}\n\nWhy it matters: ${flag.role_relevance}\n\nFollow-up: ${flag.follow_up_question}`,
+          severity: flag.severity === "disqualifying" ? "high" : "medium",
+        });
+      }
+    } else {
+      // Legacy format
+      for (const gap of getRedFlagGaps(r)) {
+        insights.push({
+          id: String(++id),
+          type: "red-flag",
+          category: "Employment Gap",
+          title: `${gap.period} (${gap.duration_months} months)`,
+          detail: `Employment gap detected during ${gap.period}.`,
+          severity: gap.severity,
+        });
+      }
+      for (const inc of (r.red_flags.inconsistencies ?? [])) {
+        insights.push({ id: String(++id), type: "red-flag", category: "Inconsistency", title: inc, detail: inc, severity: "medium" });
+      }
+      for (const vague of (r.red_flags.vague_descriptions ?? [])) {
+        insights.push({ id: String(++id), type: "red-flag", category: "Vague Claims", title: vague, detail: vague, severity: "medium" });
+      }
+    }
+  }
+
+  // Green flags (v2)
+  if (r.green_flags && r.green_flags.length > 0) {
+    for (const gf of r.green_flags.slice(0, 5)) {
       insights.push({
         id: String(++id),
-        type: "red-flag",
-        category: "Employment Gap",
-        title: `${gap.period} (${gap.duration_months} months)`,
-        detail: `Employment gap detected during ${gap.period}.`,
-        severity: gap.severity,
+        type: "strength" as any,
+        category: "Green Flag",
+        title: gf.description,
+        detail: `${gf.evidence}\n\nRole relevance: ${gf.role_relevance}`,
       });
     }
-    for (const inc of r.red_flags.inconsistencies) {
-      insights.push({ id: String(++id), type: "red-flag", category: "Inconsistency", title: inc, detail: inc, severity: "medium" });
-    }
-    for (const vague of r.red_flags.vague_descriptions) {
-      insights.push({ id: String(++id), type: "red-flag", category: "Vague Claims", title: vague, detail: vague, severity: "medium" });
+  }
+
+  // Neutral notes (v2)
+  if (r.neutral_notes && r.neutral_notes.length > 0) {
+    for (const nn of r.neutral_notes.slice(0, 3)) {
+      insights.push({
+        id: String(++id),
+        type: "suggestion",
+        category: "Needs Clarification",
+        title: nn.description,
+        detail: `${nn.context}\n\nSuggested action: ${nn.suggested_action}`,
+      });
     }
   }
 
