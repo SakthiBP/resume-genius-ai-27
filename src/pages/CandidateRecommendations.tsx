@@ -183,6 +183,10 @@ export default function CandidateRecommendations() {
   const [ghMeta, setGhMeta] = useState<any>(null);
   const [ghError, setGhError] = useState<string | null>(null);
 
+  // Rate limit state
+  const [rateLimit, setRateLimit] = useState<{ remaining: number; limit: number; reset: string } | null>(null);
+  const [rateLimitLoading, setRateLimitLoading] = useState(false);
+
   // Outreach email state
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [emailCandidate, setEmailCandidate] = useState<GitHubCandidate | null>(null);
@@ -390,6 +394,31 @@ export default function CandidateRecommendations() {
     setEmailCandidate(null);
   };
 
+  // ── Rate limit check ──
+
+  const handleCheckRateLimit = async () => {
+    setRateLimitLoading(true);
+    try {
+      const res = await fetch("https://api.github.com/rate_limit", {
+        headers: { Accept: "application/vnd.github+json" },
+      });
+      const data = await res.json();
+      const core = data.resources?.core;
+      if (core) {
+        const resetDate = new Date(core.reset * 1000);
+        setRateLimit({
+          remaining: core.remaining,
+          limit: core.limit,
+          reset: resetDate.toLocaleTimeString(),
+        });
+      }
+    } catch {
+      toast({ title: "Failed to check rate limit", variant: "destructive" });
+    } finally {
+      setRateLimitLoading(false);
+    }
+  };
+
   // ── Render ──
 
   return (
@@ -483,9 +512,19 @@ export default function CandidateRecommendations() {
                 <label htmlFor="remote-switch" className="text-xs text-muted-foreground cursor-pointer">Include remote candidates (no location filter)</label>
               </div>
 
-              <Button onClick={handleGitHubSearch} disabled={ghSearching || !selectedRoleId} className="gap-2">
-                {ghSearching ? <WavesLoader size="sm" /> : <><Github className="h-4 w-4" /> Find Candidates on GitHub</>}
-              </Button>
+              <div className="flex items-center gap-3 flex-wrap">
+                <Button onClick={handleGitHubSearch} disabled={ghSearching || !selectedRoleId} className="gap-2">
+                  {ghSearching ? <WavesLoader size="sm" /> : <><Github className="h-4 w-4" /> Find Candidates on GitHub</>}
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleCheckRateLimit} disabled={rateLimitLoading} className="gap-1.5 text-xs">
+                  {rateLimitLoading ? "Checking..." : "Check API Quota"}
+                </Button>
+                {rateLimit && (
+                  <span className="text-xs text-muted-foreground">
+                    {rateLimit.remaining}/{rateLimit.limit} calls remaining · Resets at {rateLimit.reset}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* GitHub Results */}
