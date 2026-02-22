@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
+import { useRolesCache } from "@/hooks/useRolesCache";
 import {
   FileText,
   Users,
@@ -39,6 +40,9 @@ const Home = () => {
   const navigate = useNavigate();
   const [recentCandidates, setRecentCandidates] = useState<RecentCandidate[]>([]);
   const [totalToday, setTotalToday] = useState(0);
+
+  // Preload roles cache so navigating to Analyse/Discover is instant
+  useRolesCache();
 
   useEffect(() => {
     const fetchRecent = async () => {
