@@ -26,10 +26,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { GradeInput, getDefaultValue, type GradingSystem, type GradeValue } from "@/components/GradeInput";
 
 interface TargetUniversity {
   name: string;
-  required_gpa: number;
+  grading_system: GradingSystem;
+  required_grade: string;
+  /** @deprecated kept for backward compat */
+  required_gpa?: number;
 }
 
 interface Role {
@@ -70,7 +74,13 @@ const Roles = () => {
       setRoles(
         (data || []).map((r: any) => ({
           ...r,
-          target_universities: Array.isArray(r.target_universities) ? r.target_universities : [],
+          target_universities: Array.isArray(r.target_universities)
+            ? r.target_universities.map((u: any) => ({
+                name: u.name ?? "",
+                grading_system: u.grading_system ?? "us_gpa",
+                required_grade: u.required_grade ?? String(u.required_gpa ?? "3.0"),
+              }))
+            : [],
           required_skills: Array.isArray(r.required_skills) ? r.required_skills : [],
         }))
       );
@@ -102,14 +112,22 @@ const Roles = () => {
   const addUniversity = () => {
     setForm((f) => ({
       ...f,
-      target_universities: [...f.target_universities, { name: "", required_gpa: 3.0 }],
+      target_universities: [...f.target_universities, { name: "", grading_system: "us_gpa" as GradingSystem, required_grade: "3.0" }],
     }));
   };
 
-  const updateUniversity = (idx: number, field: keyof TargetUniversity, value: string | number) => {
+  const updateUniversityName = (idx: number, name: string) => {
     setForm((f) => {
       const unis = [...f.target_universities];
-      unis[idx] = { ...unis[idx], [field]: value };
+      unis[idx] = { ...unis[idx], name };
+      return { ...f, target_universities: unis };
+    });
+  };
+
+  const updateUniversityGrade = (idx: number, grade: GradeValue) => {
+    setForm((f) => {
+      const unis = [...f.target_universities];
+      unis[idx] = { ...unis[idx], grading_system: grade.system, required_grade: grade.value };
       return { ...f, target_universities: unis };
     });
   };
@@ -136,14 +154,6 @@ const Roles = () => {
     setForm((f) => ({ ...f, required_skills: f.required_skills.filter((s) => s !== skill) }));
   };
 
-  const validateGpa = (val: number): boolean => {
-    if (val < 0 || val > 4) return false;
-    const str = String(val);
-    const parts = str.split(".");
-    if (parts.length === 2 && parts[1].length > 1) return false;
-    return true;
-  };
-
   const saveRole = async () => {
     if (!form.job_title.trim()) {
       toast({ variant: "destructive", title: "Job title is required" });
@@ -153,14 +163,6 @@ const Roles = () => {
     for (const uni of form.target_universities) {
       if (!uni.name.trim()) {
         toast({ variant: "destructive", title: "University name cannot be empty" });
-        return;
-      }
-      if (!validateGpa(uni.required_gpa)) {
-        toast({
-          variant: "destructive",
-          title: "Invalid GPA",
-          description: `GPA for "${uni.name}" must be between 0.0 and 4.0 with at most 1 decimal place.`,
-        });
         return;
       }
     }
@@ -316,34 +318,27 @@ const Roles = () => {
                 Target Universities
               </label>
               {form.target_universities.map((uni, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <Input
-                    placeholder="University name"
-                    value={uni.name}
-                    onChange={(e) => updateUniversity(idx, "name", e.target.value)}
-                    className="flex-1"
+                <div key={idx} className="space-y-2 rounded-md border border-border p-3">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="University name"
+                      value={uni.name}
+                      onChange={(e) => updateUniversityName(idx, e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                      onClick={() => removeUniversity(idx)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <GradeInput
+                    grade={{ system: uni.grading_system, value: uni.required_grade }}
+                    onChange={(g) => updateUniversityGrade(idx, g)}
                   />
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="4"
-                    placeholder="GPA"
-                    value={uni.required_gpa}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (!isNaN(val)) updateUniversity(idx, "required_gpa", val);
-                    }}
-                    className="w-24"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
-                    onClick={() => removeUniversity(idx)}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
                 </div>
               ))}
               <Button variant="outline" size="sm" onClick={addUniversity} className="gap-1.5 text-xs">
