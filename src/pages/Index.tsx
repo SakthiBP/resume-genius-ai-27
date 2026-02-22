@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import DocumentPanel from "@/components/DocumentPanel";
 import AnalysisSidebar from "@/components/AnalysisSidebar";
+import OverallScoreBadge from "@/components/OverallScoreBadge";
 import { useAnalyser } from "@/contexts/AnalyserContext";
 
 const Index = () => {
@@ -41,6 +42,11 @@ const Index = () => {
         </div>
 
         <div className="flex-[2] flex flex-col min-h-0">
+          {overallScore !== null && (
+            <div className="flex items-center justify-center px-6 py-4 border-b border-border shrink-0">
+              <OverallScoreBadge score={overallScore} />
+            </div>
+          )}
           <AnalysisSidebar
             isLoading={isAnalysing}
             hasResults={!!analysisResult}
