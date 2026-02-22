@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { StagingQueueProvider } from "@/contexts/StagingQueueContext";
 import { AnalyserProvider } from "@/contexts/AnalyserContext";
+import { BatchAnalysisProvider } from "@/contexts/BatchAnalysisContext";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Candidates from "./pages/Candidates";
@@ -25,26 +26,30 @@ const App = () => (
     <ThemeProvider>
       <StagingQueueProvider>
         <AnalyserProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/analyze" element={<Index />} />
-                <Route path="/candidates" element={<Candidates />} />
-                <Route path="/candidates/:id" element={<CandidateProfile />} />
-                <Route path="/roles" element={<Roles />} />
-                <Route path="/roi" element={<ROIDashboard />} />
-                
-                <Route path="/candidate-recommendations" element={<CandidateRecommendations />} />
-                
-                <Route path="/external-profiles/:id" element={<ExternalProfileView />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+          <BatchAnalysisProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/analyse" element={<Index />} />
+                  {/* Redirect old /analyze route */}
+                  <Route path="/analyze" element={<Navigate to="/analyse" replace />} />
+                  <Route path="/candidates" element={<Candidates />} />
+                  <Route path="/candidates/:id" element={<CandidateProfile />} />
+                  <Route path="/roles" element={<Roles />} />
+                  <Route path="/roi" element={<ROIDashboard />} />
+                  
+                  <Route path="/candidate-recommendations" element={<CandidateRecommendations />} />
+                  
+                  <Route path="/external-profiles/:id" element={<ExternalProfileView />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </BatchAnalysisProvider>
         </AnalyserProvider>
       </StagingQueueProvider>
     </ThemeProvider>

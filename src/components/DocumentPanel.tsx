@@ -30,8 +30,8 @@ interface DocumentPanelProps {
   onFileChange: (file: File | null) => void;
   jobDescription: string;
   onJobDescriptionChange: (val: string) => void;
-  onAnalyze: () => void;
-  isAnalyzing: boolean;
+  onAnalyse: () => void;
+  isAnalysing: boolean;
   selectedRole: SelectedRole | null;
   onSelectedRoleChange: (role: SelectedRole | null) => void;
 }
@@ -43,8 +43,8 @@ const DocumentPanel = ({
   onFileChange,
   jobDescription,
   onJobDescriptionChange,
-  onAnalyze,
-  isAnalyzing,
+  onAnalyse,
+  isAnalysing,
   selectedRole,
   onSelectedRoleChange,
 }: DocumentPanelProps) => {
@@ -74,7 +74,7 @@ const DocumentPanel = ({
     if (selectedRole) setRoleError(false);
   }, [selectedRole]);
 
-  const handleAnalyze = () => {
+  const handleAnalyse = () => {
     if (!selectedRole) {
       setRoleError(true);
       toast({
@@ -84,7 +84,7 @@ const DocumentPanel = ({
       });
       return;
     }
-    onAnalyze();
+    onAnalyse();
   };
 
   const handleSelectFromQueue = async (sf: StagedFile) => {
@@ -199,11 +199,11 @@ const DocumentPanel = ({
           </div>
           <Button
             size="sm"
-            onClick={handleAnalyze}
-            disabled={isAnalyzing || isExtracting || !extractedText || !selectedRole}
+            onClick={handleAnalyse}
+            disabled={isAnalysing || isExtracting || !extractedText || !selectedRole}
             className="gap-2"
           >
-            {isAnalyzing ? (
+            {isAnalysing ? (
               <>
                 <WavesLoader size="sm" className="text-primary-foreground" />
                 Analysing…

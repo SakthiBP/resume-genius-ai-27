@@ -78,7 +78,7 @@ const Home = () => {
               <p className="text-sm text-muted-foreground mt-1">Your agentic screening dashboard</p>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/analyze">
+              <Link to="/analyse">
                 <Button className="gap-2 text-xs uppercase tracking-wide">
                   <FileText className="h-3.5 w-3.5" />
                   Analyse New Resume
@@ -136,7 +136,7 @@ const Home = () => {
               <div className="border border-border bg-card p-8 text-center">
                 <Users className="h-8 w-8 mx-auto mb-3 text-muted-foreground opacity-40" />
                 <p className="text-sm text-muted-foreground">No candidates analysed yet</p>
-                <Link to="/analyze">
+                <Link to="/analyse">
                   <Button size="sm" className="mt-4 text-xs uppercase">Analyse Your First CV</Button>
                 </Link>
               </div>
