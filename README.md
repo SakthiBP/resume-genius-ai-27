@@ -1,73 +1,44 @@
-# Welcome to your Lovable project
+About
+SWIMR is an AI recruitment screening tool that analyses candidate CVs against job roles in seconds. Upload a CV, select a role, and get a full candidate breakdown — scores, skills, red flags, and a hire recommendation — in under 10 seconds for less than 4p.
+Built for HR recruiters who spend 20+ minutes manually reviewing each CV. SWIMR does it in 8 seconds.
 
-## Project info
+Features
+CV Analysis — Upload PDF or DOCX, get a 7-dimension score breakdown
+Job Roles — Create roles with descriptions, required skills, and target universities
+Candidate Pipeline — View, filter, sort, and export all analysed candidates
+Candidate Profiles — Detailed breakdowns with charts, re-analyse against different roles
+Global Grade Support — UK (First/2:1/2:2), US GPA, European ECTS, Indian CGPA, and more
+Target Student Detection — Based on QS World University Rankings
+Background Processing — Navigate freely while analysis runs
+Proof of Value — Live ROI dashboard tracking cost and time saved
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Agent Economics
 
-## How can I edit this code?
 
-There are several ways of editing your application.
+Manual
+SWIMR
+Time per CV
+~20 min
+~8 sec
+Cost per CV
+~£5–10
+~£0.04
+500 CVs
+166 hours
+67 min
+Cost reduction
 
-**Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+99.8%
 
-Changes made via Lovable will be committed automatically to this repo.
 
-**Use your preferred IDE**
+Tech Stack
+Frontend — React, TypeScript, Tailwind CSS, Recharts, shadcn/ui
+Backend — Supabase Edge Functions (Deno)
+AI — Claude Sonnet 4 (Anthropic API)
+Database — Supabase (PostgreSQL)
+File Processing — pdfjs-dist, mammoth (client-side)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Team
+Built at HackEurope 2026 for the Agentic AI Track.
+ <p align="center"> <strong>🌊 SWIMR — Because recruiters should spend time hiring, not reading.</strong> </p>
