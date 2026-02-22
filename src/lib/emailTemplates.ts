@@ -76,7 +76,7 @@ ${recruiter_name}`,
         subject: `Next Steps - Online Assessment${roleStr}`,
         body: `Dear ${candidate_name},
 
-Thank you for your application${roleIntro}. We are pleased to inform you that you have been shortlisted to progress to the next stage of our recruitment process — an online assessment.${role_title ? `\n\nThis assessment is specifically designed to evaluate your suitability for the ${role_title} position and will cover areas relevant to the role.` : ""}
+Thank you for your application${roleIntro}. We are pleased to inform you that you have been shortlisted to progress to the next stage of our recruitment process - an online assessment.${role_title ? `\n\nThis assessment is specifically designed to evaluate your suitability for the ${role_title} position and will cover areas relevant to the role.` : ""}
 
 You will receive a separate email with the assessment link and instructions shortly. Please complete the assessment within the timeframe specified.
 
