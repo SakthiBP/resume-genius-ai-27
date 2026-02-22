@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
@@ -242,6 +242,41 @@ function getScoreColour(score: number) {
   return CHART_COLOURS.red;
 }
 
+/* Simple string hash for cache keys */
+function quickHash(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  }
+  return h.toString(36);
+}
+
+function buildJobContext(role: SavedRole): string {
+  return [
+    `Job Title: ${role.job_title}`,
+    role.description ? `Job Description: ${role.description}` : "",
+    role.required_skills.length > 0
+      ? `Required Skills: ${role.required_skills.join(", ")}`
+      : "",
+    role.target_universities.length > 0
+      ? `Target Universities: ${role.target_universities
+          .map((u) => `${u.name} (min GPA: ${u.required_gpa})`)
+          .join(", ")}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+interface CachedAnalysis {
+  analysis: any;
+  overall_score: number;
+  recommendation: string;
+  candidate_name: string;
+  email: string | null;
+  jobContext: string | null;
+}
+
 const CandidateProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -251,6 +286,15 @@ const CandidateProfile = () => {
   const [roles, setRoles] = useState<SavedRole[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Analysis cache: key = "roleId|cvHash|jobDescHash"
+  const analysisCacheRef = useRef<Map<string, CachedAnalysis>>(new Map());
+
+  const makeCacheKey = useCallback(
+    (roleId: string | null, cvText: string, jobContext: string | null) =>
+      `${roleId ?? "none"}|${quickHash(cvText)}|${quickHash(jobContext ?? "")}`,
+    []
+  );
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -437,7 +481,7 @@ const CandidateProfile = () => {
     })();
   }, [id]);
 
-  const runAnalysis = async (jobContext: string | null) => {
+  const runAnalysis = async (jobContext: string | null, roleId: string | null = selectedRoleId) => {
     if (!candidate) return;
     setReanalysing(true);
     try {
@@ -449,6 +493,17 @@ const CandidateProfile = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+
+      // Store in cache
+      const cacheKey = makeCacheKey(roleId, candidate.cv_text, jobContext);
+      analysisCacheRef.current.set(cacheKey, {
+        analysis: data,
+        overall_score: data.overall_score?.composite_score ?? 0,
+        recommendation: data.overall_score?.recommendation ?? "maybe",
+        candidate_name: data.candidate_name || candidate.candidate_name,
+        email: data.email || candidate.email,
+        jobContext,
+      });
 
       await supabase
         .from("candidates")
@@ -483,13 +538,56 @@ const CandidateProfile = () => {
     }
   };
 
-  const reanalyse = () => runAnalysis(candidate?.job_description || null);
+  /** Force re-analysis (bypass cache) */
+  const reanalyse = () => {
+    if (!candidate) return;
+    const jobContext = selectedRoleId
+      ? buildJobContext(roles.find((r) => r.id === selectedRoleId)!)
+      : candidate.job_description || null;
+    // Invalidate cache entry
+    const cacheKey = makeCacheKey(selectedRoleId, candidate.cv_text, jobContext);
+    analysisCacheRef.current.delete(cacheKey);
+    runAnalysis(jobContext, selectedRoleId);
+  };
+
+  const handleRoleSwitch = (roleId: string | null) => {
+    setSelectedRoleId(roleId);
+    if (!candidate) return;
+
+    const jobContext = roleId
+      ? buildJobContext(roles.find((r) => r.id === roleId)!)
+      : null;
+
+    // Check cache first
+    const cacheKey = makeCacheKey(roleId, candidate.cv_text, jobContext);
+    const cached = analysisCacheRef.current.get(cacheKey);
+
+    if (cached) {
+      // Instant switch — no API call
+      setCandidate((prev) =>
+        prev
+          ? {
+              ...prev,
+              analysis_json: cached.analysis,
+              overall_score: cached.overall_score,
+              recommendation: cached.recommendation,
+              candidate_name: cached.candidate_name || prev.candidate_name,
+              email: cached.email || prev.email,
+              job_description: cached.jobContext,
+            }
+          : prev
+      );
+      return;
+    }
+
+    // Cache miss — run analysis
+    runAnalysis(jobContext, roleId);
+  };
 
   const handleDeleteCandidate = async () => {
     if (!candidate) return;
     setDeleting(true);
     try {
-      // Delete related email logs first
       await supabase.from("recruitment_email_log").delete().eq("candidate_id", candidate.id);
       const { error } = await supabase.from("candidates").delete().eq("id", candidate.id);
       if (error) throw error;
@@ -502,35 +600,6 @@ const CandidateProfile = () => {
     }
   };
 
-  const handleRoleSwitch = (roleId: string | null) => {
-    setSelectedRoleId(roleId);
-    if (!candidate) return;
-
-    if (!roleId) {
-      runAnalysis(null);
-      return;
-    }
-
-    const role = roles.find((r) => r.id === roleId);
-    if (!role) return;
-
-    const roleParts = [
-      `Job Title: ${role.job_title}`,
-      role.description ? `Job Description: ${role.description}` : "",
-      role.required_skills.length > 0
-        ? `Required Skills: ${role.required_skills.join(", ")}`
-        : "",
-      role.target_universities.length > 0
-        ? `Target Universities: ${role.target_universities
-            .map((u) => `${u.name} (min GPA: ${u.required_gpa})`)
-            .join(", ")}`
-        : "",
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-
-    runAnalysis(roleParts);
-  };
 
   if (loading) {
     return (
