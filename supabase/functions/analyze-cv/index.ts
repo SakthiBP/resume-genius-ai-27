@@ -197,22 +197,7 @@ the recruiter should take or a risk they should be aware of.
 
 Role-Specific Scoring:
 - If a job description / role is provided, score all sections specifically against that role's requirements.
-- If NO job description / role is provided, set job_description_match score to 0, keywords to empty arrays, and skill_match_percentage to 0 — do not guess or fabricate scores.
-
-IMPORTANT — Be concise. Keep string values short and to the point. Avoid unnecessary verbosity.`;
-
-const REQUEST_TIMEOUT_MS = 90_000; // 90 second timeout for Claude API
-
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
-    return response;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+- If NO job description / role is provided, set job_description_match score to 0, keywords to empty arrays, and skill_match_percentage to 0 — do not guess or fabricate scores.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -247,7 +232,7 @@ serve(async (req) => {
       originalUserMessage = `Analyse this CV as a general professional evaluation (no specific role selected):\n\n<cv_text>\n${cv_text}\n</cv_text>\n\nSince no role is specified, set job_description_match score to 0 and keywords to empty arrays. Return ONLY valid JSON.`;
     }
 
-    const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -256,14 +241,14 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
+        max_tokens: 6000,
         system: SYSTEM_PROMPT,
         messages: [{
           role: 'user',
           content: originalUserMessage
         }]
       })
-    }, REQUEST_TIMEOUT_MS);
+    });
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -288,7 +273,7 @@ serve(async (req) => {
       analysis = JSON.parse(jsonStr);
     } catch (e) {
       // If parsing fails, retry with a correction message
-      const retryResponse = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+      const retryResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -297,14 +282,14 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 2048,
+          max_tokens: 6000,
           messages: [
             { role: 'user', content: originalUserMessage },
             { role: 'assistant', content: data.content[0].text },
             { role: 'user', content: 'Your previous response was not valid JSON. Return ONLY valid JSON with no markdown formatting, no backticks, no explanation.' }
           ]
         })
-      }, REQUEST_TIMEOUT_MS);
+      });
 
       const retryData = await retryResponse.json();
       let retryStr = retryData.content[0].text
@@ -383,15 +368,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    const isTimeout = error instanceof DOMException && error.name === "AbortError";
     console.error("Error in analyze-cv:", error);
     return new Response(
-      JSON.stringify({
-        error: isTimeout
-          ? "Analysis timed out. The CV may be too long or the service is busy. Please try again."
-          : (error.message || "An error occurred during analysis"),
-      }),
-      { status: isTimeout ? 504 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: error.message || "An error occurred during analysis" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

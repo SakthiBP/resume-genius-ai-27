@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect } from "react";
 import {
   Search, MapPin, Briefcase, Award, UserPlus, Plus, ChevronDown, ChevronUp,
   AlertTriangle, Github, Mail, ExternalLink, Star, Send, Globe,
@@ -15,7 +15,6 @@ import Navbar from "@/components/Navbar";
 import WavesLoader from "@/components/WavesLoader";
 import EmailPreviewModal from "@/components/EmailPreviewModal";
 import { getOutreachEmailTemplate } from "@/lib/emailTemplates";
-import { useRolesCache } from "@/hooks/useRolesCache";
 
 // ── Types ──
 
@@ -150,10 +149,10 @@ function getScoreColor(score: number) {
 export default function CandidateRecommendations() {
   const { toast } = useToast();
 
-  // Shared state — use cached roles
-  const { data: roles = [], isLoading: rolesLoading } = useRolesCache();
+  // Shared state
+  const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState("");
-  
+  const [rolesLoading, setRolesLoading] = useState(true);
 
   // Pool tab state
   const [seniority, setSeniority] = useState("");
@@ -194,6 +193,23 @@ export default function CandidateRecommendations() {
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
 
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("roles").select("*");
+      if (data) {
+        setRoles(
+          data.map((r: any) => ({
+            id: r.id,
+            job_title: r.job_title,
+            required_skills: Array.isArray(r.required_skills) ? r.required_skills : [],
+            description: r.description || "",
+          }))
+        );
+      }
+      setRolesLoading(false);
+    })();
+  }, []);
+
   const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
   // ── Pool handlers ──
@@ -229,7 +245,7 @@ export default function CandidateRecommendations() {
     if (!selectedRoleId || !selectedRole) { toast({ title: "Select a role", variant: "destructive" }); return; }
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("external_candidates").select("id, name, headline, location, skills, experience, linkedin_url, created_at");
+      const { data, error } = await supabase.from("external_candidates").select("*");
       if (error) throw error;
       const filters = { seniority, location: locationFilter, skills: skillsFilter ? skillsFilter.split(",").map((s) => s.trim()).filter(Boolean) : [] };
       const scored: ScoredCandidate[] = ((data as any[]) || [])
@@ -577,7 +593,7 @@ export default function CandidateRecommendations() {
 
 // ── GitHub Candidate Card ──
 
-const GitHubCandidateCard = memo(function GitHubCandidateCard({
+function GitHubCandidateCard({
   candidate: c,
   onOutreach,
 }: {
@@ -717,4 +733,4 @@ const GitHubCandidateCard = memo(function GitHubCandidateCard({
       </div>
     </div>
   );
-});
+}

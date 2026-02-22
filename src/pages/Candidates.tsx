@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import RankingMode from "@/components/RankingMode";
@@ -15,8 +15,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Users, ArrowUpDown, Download, List, Trophy } from "lucide-react";
 import type { AnalysisResult } from "@/types/analysis";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useRolesCache } from "@/hooks/useRolesCache";
 
 interface Candidate {
   id: string;
@@ -72,24 +70,29 @@ function timeAgo(dateStr: string) {
 const Candidates = () => {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const { data: roles = [] } = useRolesCache();
+  const [roles, setRoles] = useState<Role[]>([]);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 200);
   const [sortBy, setSortBy] = useState("date");
   const [filterStatus, setFilterStatus] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "ranking">("list");
 
   useEffect(() => {
     fetchCandidates();
+    fetchRoles();
   }, []);
 
   const fetchCandidates = async () => {
     const { data, error } = await supabase
       .from("candidates")
-      .select("id, candidate_name, email, overall_score, recommendation, analysis_json, cv_text, job_description, status, created_at")
+      .select("*")
       .order("created_at", { ascending: false });
     if (data) setCandidates(data as unknown as Candidate[]);
     if (error) console.error("Failed to fetch candidates:", error);
+  };
+
+  const fetchRoles = async () => {
+    const { data } = await supabase.from("roles").select("id, job_title").order("job_title");
+    if (data) setRoles(data);
   };
 
   const exportCSV = () => {
@@ -134,15 +137,15 @@ const Candidates = () => {
     if (filterStatus !== "all") {
       list = list.filter((c) => c.status === filterStatus);
     }
-    if (debouncedSearch.trim()) {
-      const q = debouncedSearch.toLowerCase();
+    if (search.trim()) {
+      const q = search.toLowerCase();
       list = list.filter((c) => c.candidate_name.toLowerCase().includes(q));
     }
     if (sortBy === "score") list = [...list].sort((a, b) => b.overall_score - a.overall_score);
     else if (sortBy === "name") list = [...list].sort((a, b) => a.candidate_name.localeCompare(b.candidate_name));
     else list = [...list].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return list;
-  }, [candidates, debouncedSearch, sortBy, filterStatus]);
+  }, [candidates, search, sortBy, filterStatus]);
 
   return (
     <div className="h-screen flex flex-col bg-background transition-colors duration-300">
