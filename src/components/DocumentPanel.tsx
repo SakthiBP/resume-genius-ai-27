@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FileText, RefreshCw, ChevronDown, PackageCheck } from "lucide-react";
+import { FileText, RefreshCw, ChevronDown, Package } from "lucide-react";
 import WavesLoader from "@/components/WavesLoader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -136,7 +136,7 @@ const DocumentPanel = ({
                   : "bg-card text-muted-foreground hover:text-foreground"
               }`}
             >
-              <PackageCheck className="h-3.5 w-3.5" />
+              <Package className="h-3.5 w-3.5" />
               Select from Queue
               {pendingFiles.length > 0 && (
                 <span className="ml-1 text-[10px] tabular-nums">({pendingFiles.length})</span>
