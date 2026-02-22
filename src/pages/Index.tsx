@@ -27,6 +27,11 @@ const Index = () => {
 
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
         <div className="flex-[3] flex flex-col min-h-0 border-r border-border">
+          {overallScore !== null && (
+            <div className="flex items-center justify-center px-6 py-4 border-b border-border shrink-0">
+              <OverallScoreBadge score={overallScore} />
+            </div>
+          )}
           <DocumentPanel
             file={file}
             extractedText={extractedText}
@@ -42,11 +47,6 @@ const Index = () => {
         </div>
 
         <div className="flex-[2] flex flex-col min-h-0">
-          {overallScore !== null && (
-            <div className="flex items-center justify-center px-6 py-4 border-b border-border shrink-0">
-              <OverallScoreBadge score={overallScore} />
-            </div>
-          )}
           <AnalysisSidebar
             isLoading={isAnalysing}
             hasResults={!!analysisResult}
