@@ -5,7 +5,7 @@ export interface StagedFile {
   fileName: string;
   fileSize: number;
   uploadDate: string;
-  status: "uploading" | "pending" | "analyzing" | "done";
+  status: "uploading" | "pending" | "analysing" | "done" | "failed";
   progress: number; // 0-100 upload progress
   file: File | null; // actual File object for extraction
   extractedText?: string;

@@ -34,8 +34,8 @@ const Index = () => {
             onFileChange={handleFileChange}
             jobDescription={jobDescription}
             onJobDescriptionChange={setJobDescription}
-            onAnalyze={analyseResume}
-            isAnalyzing={isAnalysing}
+            onAnalyse={analyseResume}
+            isAnalysing={isAnalysing}
             selectedRole={selectedRole}
             onSelectedRoleChange={setSelectedRole}
           />

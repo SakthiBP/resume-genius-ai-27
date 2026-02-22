@@ -1,10 +1,12 @@
 import { Moon, Sun, Users, Briefcase, TrendingUp, FileText, Compass, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Link, useLocation } from "react-router-dom";
 import OverallScoreBadge from "./OverallScoreBadge";
 import SwimLogo from "./SwimLogo";
 import { useTheme } from "@/hooks/useTheme";
 import { useAnalyser } from "@/contexts/AnalyserContext";
+import { useBatchAnalysis } from "@/contexts/BatchAnalysisContext";
 
 interface NavbarProps {
   score?: number | null;
@@ -14,6 +16,9 @@ const Navbar = ({ score = null }: NavbarProps) => {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
   const { isAnalysing } = useAnalyser();
+  const { isRunning, completedCount, totalCount, currentItem } = useBatchAnalysis();
+
+  const showActivity = isAnalysing || isRunning;
 
   return (
     <header className="h-14 border-b border-border bg-background flex items-center px-4 shrink-0">
@@ -30,21 +35,29 @@ const Navbar = ({ score = null }: NavbarProps) => {
         </Link>
       </div>
 
-      <div className="flex-[3] flex justify-center">
+      <div className="flex-[3] flex justify-center items-center gap-4">
         {score !== null && <OverallScoreBadge score={score} />}
+        {/* Batch run global indicator */}
+        {isRunning && (
+          <div className="flex items-center gap-2 px-3 py-1.5 border border-border bg-card text-xs">
+            <Loader2 className="h-3 w-3 animate-spin text-primary" />
+            <span className="text-muted-foreground">Analysing {completedCount + 1}/{totalCount}</span>
+            <Progress value={totalCount > 0 ? (completedCount / totalCount) * 100 : 0} className="h-1.5 w-20" />
+          </div>
+        )}
       </div>
       <div className="flex-[2]" />
 
       <div className="min-w-[200px] flex items-center justify-end gap-2">
-        <Link to="/analyze">
-          <Button variant={location.pathname === "/analyze" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
-            {isAnalysing ? (
+        <Link to="/analyse">
+          <Button variant={location.pathname === "/analyse" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5 text-xs transition-colors duration-200">
+            {showActivity ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
             ) : (
               <FileText className="h-3.5 w-3.5" />
             )}
             Analyser
-            {isAnalysing && (
+            {showActivity && (
               <span className="relative flex h-2 w-2 ml-0.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-score-green opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-score-green" />

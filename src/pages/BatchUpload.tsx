@@ -1,13 +1,15 @@
 import { useState, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { useStagingQueue, type StagedFile } from "@/contexts/StagingQueueContext";
+import { useBatchAnalysis } from "@/contexts/BatchAnalysisContext";
+import { useAnalyser } from "@/contexts/AnalyserContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import WavesLoader from "@/components/WavesLoader";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Trash2, Zap, FileText, Package } from "lucide-react";
+import { Upload, Trash2, Zap, FileText, Package, Loader2, RotateCcw, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function formatBytes(bytes: number) {
@@ -23,13 +25,46 @@ function formatDate(iso: string) {
 
 const ACCEPTED_EXTENSIONS = [".pdf", ".docx"];
 
+function statusBadge(status: StagedFile["status"]) {
+  switch (status) {
+    case "analysing":
+      return (
+        <Badge variant="secondary" className="text-[10px] px-2.5 py-0.5 pointer-events-none gap-1">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Analysing
+        </Badge>
+      );
+    case "done":
+      return (
+        <Badge className="text-[10px] px-2.5 py-0.5 pointer-events-none bg-score-green text-white border-0">
+          Completed
+        </Badge>
+      );
+    case "failed":
+      return (
+        <Badge variant="destructive" className="text-[10px] px-2.5 py-0.5 pointer-events-none">
+          Failed
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="secondary" className="text-[10px] px-2.5 py-0.5 pointer-events-none">
+          Pending
+        </Badge>
+      );
+  }
+}
+
 const BatchUpload = () => {
   const { files, addFiles, removeFiles } = useStagingQueue();
+  const { isRunning, run, startRun, cancelRun, retryFailed, completedCount, totalCount, currentItem } = useBatchAnalysis();
+  const { selectedRole } = useAnalyser();
   const [isDragging, setIsDragging] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const pendingFiles = files.filter((f) => f.status === "pending");
   const uploadingFiles = files.filter((f) => f.status === "uploading");
+  const allQueueFiles = files.filter((f) => f.status !== "uploading");
 
   const validateAndAdd = useCallback(
     (fileList: FileList | File[]) => {
@@ -87,13 +122,38 @@ const BatchUpload = () => {
     toast({ title: "Files removed from queue" });
   };
 
-  const handleAnalyzeSelected = () => {
-    toast({ title: "Analysis queued", description: `${selected.size} file${selected.size > 1 ? "s" : ""} sent for analysis.` });
+  const buildJobContext = (): string | null => {
+    if (!selectedRole) return null;
+    const parts = [
+      `Job Title: ${selectedRole.job_title}`,
+      selectedRole.description ? `Job Description: ${selectedRole.description}` : "",
+      selectedRole.required_skills.length > 0 ? `Required Skills: ${selectedRole.required_skills.join(", ")}` : "",
+      selectedRole.target_universities.length > 0
+        ? `Target Universities: ${selectedRole.target_universities.map((u: any) => `${u.name} (min GPA: ${u.required_gpa})`).join(", ")}`
+        : "",
+    ].filter(Boolean).join("\n\n");
+    return parts || null;
   };
 
-  const handleAnalyzeAll = () => {
-    toast({ title: "Analysis queued", description: `${pendingFiles.length} file${pendingFiles.length > 1 ? "s" : ""} sent for analysis.` });
+  const handleAnalyseSelected = () => {
+    if (selected.size === 0) {
+      toast({ variant: "destructive", title: "Select at least one CV to analyse." });
+      return;
+    }
+    startRun(Array.from(selected), selectedRole?.id ?? null, selectedRole?.job_title ?? null, buildJobContext());
+    setSelected(new Set());
   };
+
+  const handleAnalyseAll = () => {
+    if (pendingFiles.length === 0) {
+      toast({ variant: "destructive", title: "No pending files to analyse." });
+      return;
+    }
+    startRun(pendingFiles.map((f) => f.id), selectedRole?.id ?? null, selectedRole?.job_title ?? null, buildJobContext());
+    setSelected(new Set());
+  };
+
+  const hasFailedItems = run?.items.some((it) => it.status === "failed") ?? false;
 
   return (
     <div className="h-screen flex flex-col bg-background transition-colors duration-300">
@@ -106,6 +166,53 @@ const BatchUpload = () => {
             <h1 className="text-2xl font-bold text-foreground uppercase">Batch Upload & Queue</h1>
             <Badge variant="secondary" className="text-xs">{files.length} files</Badge>
           </div>
+
+          {/* Batch Progress Panel */}
+          {run && (run.active || run.items.some((it) => it.status === "completed" || it.status === "failed")) && (
+            <div className="border border-border bg-card p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  {isRunning ? `Analysing ${completedCount + 1} of ${totalCount}` : "Batch Analysis Complete"}
+                </h3>
+                <div className="flex items-center gap-2">
+                  {hasFailedItems && !isRunning && (
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs h-7" onClick={retryFailed}>
+                      <RotateCcw className="h-3 w-3" />
+                      Retry Failed
+                    </Button>
+                  )}
+                  {isRunning && (
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs h-7" onClick={cancelRun}>
+                      <XCircle className="h-3 w-3" />
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <Progress value={totalCount > 0 ? (completedCount / totalCount) * 100 : 0} className="h-2" />
+              {currentItem && (
+                <p className="text-xs text-muted-foreground">
+                  Currently analysing: <span className="font-medium text-foreground">{currentItem.fileName}</span>
+                </p>
+              )}
+              <div className="space-y-1 max-h-40 overflow-y-auto">
+                {run.items.map((it) => (
+                  <div key={it.id} className="flex items-center justify-between text-xs py-0.5">
+                    <span className="truncate text-foreground/80">{it.fileName}</span>
+                    <span className={cn(
+                      "shrink-0 ml-2",
+                      it.status === "completed" && "text-score-green",
+                      it.status === "failed" && "text-destructive",
+                      it.status === "analysing" && "text-primary",
+                      (it.status === "pending" || it.status === "extracting") && "text-muted-foreground",
+                    )}>
+                      {it.status === "extracting" ? "Extracting…" : it.status === "analysing" ? "Analysing…" : it.status.charAt(0).toUpperCase() + it.status.slice(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Dropzone */}
           <div
@@ -161,20 +268,21 @@ const BatchUpload = () => {
               </h2>
             </div>
 
-            {pendingFiles.length === 0 && uploadingFiles.length === 0 ? (
+            {allQueueFiles.length === 0 && uploadingFiles.length === 0 ? (
               <div className="border border-border bg-card p-12 text-center">
                 <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground opacity-40" />
                 <p className="text-sm text-muted-foreground">No files in queue. Drop files above to get started.</p>
               </div>
-            ) : pendingFiles.length > 0 ? (
+            ) : allQueueFiles.length > 0 ? (
               <>
-                {/* Table header */}
+                {/* Table */}
                 <div className="border border-border bg-card">
                   <div className="grid grid-cols-[40px_1fr_120px_100px_100px] gap-2 px-4 py-3 border-b border-border text-xs text-muted-foreground uppercase tracking-wide font-medium items-center">
                     <div className="flex justify-center">
                       <Checkbox
                         checked={selected.size === pendingFiles.length && pendingFiles.length > 0}
                         onCheckedChange={toggleAll}
+                        disabled={isRunning}
                       />
                     </div>
                     <span>File Name</span>
@@ -182,7 +290,7 @@ const BatchUpload = () => {
                     <span className="text-right">File Size</span>
                     <span className="text-center">Status</span>
                   </div>
-                  {pendingFiles.map((f) => (
+                  {allQueueFiles.map((f) => (
                     <div
                       key={f.id}
                       className="grid grid-cols-[40px_1fr_120px_100px_100px] gap-2 px-4 py-3 border-b border-border last:border-b-0 items-center hover:bg-accent transition-colors duration-200"
@@ -191,6 +299,7 @@ const BatchUpload = () => {
                         <Checkbox
                           checked={selected.has(f.id)}
                           onCheckedChange={() => toggleSelect(f.id)}
+                          disabled={isRunning || f.status !== "pending"}
                         />
                       </div>
                       <div className="flex items-center gap-2 min-w-0">
@@ -200,9 +309,7 @@ const BatchUpload = () => {
                       <span className="text-xs text-muted-foreground">{formatDate(f.uploadDate)}</span>
                       <span className="text-xs text-muted-foreground text-right">{formatBytes(f.fileSize)}</span>
                       <div className="flex justify-center">
-                        <Badge variant="secondary" className="text-[10px] px-2.5 py-0.5 pointer-events-none">
-                          Pending
-                        </Badge>
+                        {statusBadge(f.status)}
                       </div>
                     </div>
                   ))}
@@ -211,13 +318,13 @@ const BatchUpload = () => {
                 {/* Batch actions bar */}
                 <div className="flex items-center gap-3 mt-4 p-4 border border-border bg-card">
                   <span className="text-xs text-muted-foreground mr-auto">
-                    {selected.size > 0 ? `${selected.size} selected` : "Select files to perform actions"}
+                    {isRunning ? `Analysing ${completedCount + 1} of ${totalCount}…` : selected.size > 0 ? `${selected.size} selected` : "Select files to perform actions"}
                   </span>
                   <Button
                     size="sm"
                     variant="outline"
                     className="gap-1.5 text-xs"
-                    disabled={selected.size === 0}
+                    disabled={selected.size === 0 || isRunning}
                     onClick={handleRemoveSelected}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -226,21 +333,21 @@ const BatchUpload = () => {
                   <Button
                     size="sm"
                     className="gap-1.5 text-xs"
-                    disabled={selected.size === 0}
-                    onClick={handleAnalyzeSelected}
+                    disabled={selected.size === 0 || isRunning}
+                    onClick={handleAnalyseSelected}
                   >
                     <Zap className="h-3.5 w-3.5" />
-                    Analyze Selected
+                    {isRunning ? "Analysing…" : "Analyse Selected"}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     className="gap-1.5 text-xs"
-                    disabled={pendingFiles.length === 0}
-                    onClick={handleAnalyzeAll}
+                    disabled={pendingFiles.length === 0 || isRunning}
+                    onClick={handleAnalyseAll}
                   >
                     <Zap className="h-3.5 w-3.5" />
-                    Analyze All Pending
+                    {isRunning ? "Analysing…" : "Analyse All Pending"}
                   </Button>
                 </div>
               </>
